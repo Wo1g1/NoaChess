@@ -196,8 +196,21 @@
     }
 
     /* Brown board theme */
-    .cg-board {
+    .cg-wrap {
+      --files: 6;
+      --ranks: 6;
+    }
+
+    cg-board {
       background-image: none !important;
+    }
+
+    cg-board square.white {
+      background-color: #f0d9b5 !important;
+    }
+
+    cg-board square.black {
+      background-color: #b58863 !important;
     }
 
     .cg-wrap square.white {
