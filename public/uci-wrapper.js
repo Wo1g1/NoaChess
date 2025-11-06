@@ -11,8 +11,9 @@ Stockfish().then(sf => {
   engine = sf;
 
   // Forward all engine messages to main thread
-  engine.addEventListener('message', (msg) => {
-    self.postMessage(msg);
+  // Use addMessageListener (Fairy-Stockfish WASM API)
+  engine.addMessageListener((line) => {
+    self.postMessage(line);
   });
 
   ready = true;
