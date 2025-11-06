@@ -6,6 +6,35 @@ let ffish;
 let board;
 let game;
 let chessground;
+let stockfish = null;
+let stockfishReady = false;
+
+// Initialize Stockfish AI
+function initStockfish() {
+  if (typeof Stockfish === 'undefined') {
+    console.log('Stockfish not available, AI disabled');
+    return;
+  }
+
+  Stockfish().then(sf => {
+    stockfish = sf;
+
+    stockfish.addMessageListener(msg => {
+      console.log('Stockfish:', msg);
+    });
+
+    stockfish.postMessage('uci');
+    stockfish.postMessage('setoption name UCI_Variant value noachess');
+    stockfish.postMessage('isready');
+
+    setTimeout(() => {
+      stockfishReady = true;
+      console.log('Fairy-Stockfish AI ready!');
+    }, 500);
+  }).catch(err => {
+    console.error('Failed to load Stockfish:', err);
+  });
+}
 
 // Initialize Fairy-Stockfish
 new Module().then((loadedModule) => {
@@ -18,6 +47,7 @@ new Module().then((loadedModule) => {
     .then(ini => {
       ffish.loadVariantConfig(ini);
       console.log('NoaChess variant loaded!');
+      initStockfish();
       initGame();
     })
     .catch(error => {
@@ -76,14 +106,23 @@ function initGame() {
 }
 
 function applyBoardColors() {
-  setTimeout(() => {
+  // Try multiple times to ensure squares are rendered
+  const tryApply = (attempts = 0) => {
     const squares = document.querySelectorAll('cg-board square');
+
+    if (squares.length === 0 && attempts < 10) {
+      setTimeout(() => tryApply(attempts + 1), 100);
+      return;
+    }
+
+    console.log(`Applying colors to ${squares.length} squares`);
+
     squares.forEach(square => {
       const style = square.getAttribute('style');
       if (!style) return;
 
       // Extract translate coordinates
-      const match = style.match(/translate\((\d+)px,\s*(\d+)px\)/);
+      const match = style.match(/translate\((-?\d+)px,\s*(-?\d+)px\)/);
       if (!match) return;
 
       const x = parseInt(match[1]);
@@ -94,13 +133,14 @@ function applyBoardColors() {
       const rank = Math.floor(y / 100);  // 0-5 (1-6)
 
       // Board colors alternate: (file + rank) even = light, odd = dark
-      if ((file + rank) % 2 === 0) {
-        square.style.backgroundColor = '#f0d9b5';  // light brown
-      } else {
-        square.style.backgroundColor = '#b58863';  // dark brown
-      }
+      const color = (file + rank) % 2 === 0 ? '#f0d9b5' : '#b58863';
+      square.style.setProperty('background-color', color, 'important');
+
+      console.log(`Square ${file},${rank}: ${color}`);
     });
-  }, 100);
+  };
+
+  setTimeout(() => tryApply(), 100);
 }
 
 function getLegalMoves() {
@@ -179,120 +219,68 @@ function shouldAIMove() {
   return (isWhiteTurn && !playWhite) || (!isWhiteTurn && !playBlack);
 }
 
-// Piece values for evaluation
-const PIECE_VALUES = {
-  'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'k': 20000,
-  'l': 350, 'g': 100,  // NoaChess custom pieces
-  'P': 100, 'N': 320, 'B': 330, 'R': 500, 'Q': 900, 'K': 20000,
-  'L': 350, 'G': 100
-};
-
-function evaluatePosition() {
-  if (game.isGameOver()) {
-    if (game.result() === '0-1') return game.turn() ? -20000 : 20000;
-    if (game.result() === '1-0') return game.turn() ? 20000 : -20000;
-    return 0;  // Draw
-  }
-
-  let score = 0;
-  const fen = game.fen();
-  const board = fen.split(' ')[0];
-
-  // Count material
-  for (let char of board) {
-    if (PIECE_VALUES[char]) {
-      score += char === char.toUpperCase() ? PIECE_VALUES[char] : -PIECE_VALUES[char];
-    }
-  }
-
-  return game.turn() ? score : -score;  // Negate if black to move
-}
-
-function minimax(depth, alpha, beta, maximizingPlayer) {
-  if (depth === 0 || game.isGameOver()) {
-    return evaluatePosition();
-  }
-
-  const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
-
-  if (maximizingPlayer) {
-    let maxEval = -Infinity;
-    for (let move of moves) {
-      game.push(move);
-      const evaluation = minimax(depth - 1, alpha, beta, false);
-      game.pop();
-      maxEval = Math.max(maxEval, evaluation);
-      alpha = Math.max(alpha, evaluation);
-      if (beta <= alpha) break;  // Alpha-beta pruning
-    }
-    return maxEval;
-  } else {
-    let minEval = Infinity;
-    for (let move of moves) {
-      game.push(move);
-      const evaluation = minimax(depth - 1, alpha, beta, true);
-      game.pop();
-      minEval = Math.min(minEval, evaluation);
-      beta = Math.min(beta, evaluation);
-      if (beta <= alpha) break;  // Alpha-beta pruning
-    }
-    return minEval;
-  }
-}
-
-function findBestMove(depth) {
-  const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
-  if (moves.length === 0) return null;
-
-  let bestMove = moves[0];
-  let bestValue = -Infinity;
-
-  // Prioritize captures
-  const captureMoves = moves.filter(m => game.isCapture(m));
-  const searchMoves = captureMoves.length > 0 ? [...captureMoves, ...moves] : moves;
-
-  for (let move of searchMoves) {
-    game.push(move);
-    const moveValue = -minimax(depth - 1, -Infinity, Infinity, false);
-    game.pop();
-
-    if (moveValue > bestValue) {
-      bestValue = moveValue;
-      bestMove = move;
-    }
-  }
-
-  return bestMove;
-}
-
 function makeAIMove() {
   if (game.isGameOver()) return;
 
   updateStatus('AI thinking...');
 
-  setTimeout(() => {
-    const depth = Math.min(parseInt(document.getElementById('depth').value) || 4, 6);
-    const bestMove = findBestMove(depth);
+  if (!stockfishReady || !stockfish) {
+    // Fallback: random move
+    setTimeout(() => {
+      const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
+      if (moves.length === 0) return;
 
-    if (bestMove) {
-      game.push(bestMove);
-
-      const turnColor = game.turn() ? 'white' : 'black';
-      const movableColor = getMovableColor();
+      const move = moves[Math.floor(Math.random() * moves.length)];
+      game.push(move);
 
       chessground.set({
         fen: game.fen(),
-        turnColor: turnColor,
+        turnColor: game.turn() ? 'white' : 'black',
         movable: {
-          color: movableColor,
+          color: getMovableColor(),
           dests: getLegalMoves()
         },
-        lastMove: [bestMove.slice(0, 2), bestMove.slice(2, 4)]
+        lastMove: [move.slice(0, 2), move.slice(2, 4)]
       });
 
       updateGameStatus();
+    }, 300);
+    return;
+  }
+
+  // Use Fairy-Stockfish
+  const depth = parseInt(document.getElementById('depth').value) || 12;
+  let bestMove = null;
+
+  const messageHandler = (msg) => {
+    if (msg.startsWith('bestmove')) {
+      const parts = msg.split(' ');
+      bestMove = parts[1];
+
+      stockfish.removeMessageListener(messageHandler);
+
+      if (bestMove && bestMove !== '(none)') {
+        game.push(bestMove);
+
+        chessground.set({
+          fen: game.fen(),
+          turnColor: game.turn() ? 'white' : 'black',
+          movable: {
+            color: getMovableColor(),
+            dests: getLegalMoves()
+          },
+          lastMove: [bestMove.slice(0, 2), bestMove.slice(2, 4)]
+        });
+
+        updateGameStatus();
+      }
     }
-  }, 100);
+  };
+
+  stockfish.addMessageListener(messageHandler);
+  stockfish.postMessage('ucinewgame');
+  stockfish.postMessage(`position fen ${game.fen()}`);
+  stockfish.postMessage(`go depth ${depth}`);
 }
 
 function updateGameStatus() {
