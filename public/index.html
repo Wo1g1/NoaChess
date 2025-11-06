@@ -202,68 +202,8 @@
     }
 
     cg-board {
-      background-image: none !important;
-      background-color: #f0d9b5;
-    }
-
-    cg-board square {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: calc(100% / 6);
-      height: calc(100% / 6);
-    }
-
-    /* Chessboard pattern for 6x6 */
-    cg-board square.white {
-      background-color: #f0d9b5 !important;
-    }
-
-    cg-board square.black {
-      background-color: #b58863 !important;
-    }
-
-    /* Board colors by position */
-    cg-board square[style*="translate(0px, 0px)"],
-    cg-board square[style*="translate(200px, 0px)"],
-    cg-board square[style*="translate(400px, 0px)"],
-    cg-board square[style*="translate(100px, 100px)"],
-    cg-board square[style*="translate(300px, 100px)"],
-    cg-board square[style*="translate(500px, 100px)"],
-    cg-board square[style*="translate(0px, 200px)"],
-    cg-board square[style*="translate(200px, 200px)"],
-    cg-board square[style*="translate(400px, 200px)"],
-    cg-board square[style*="translate(100px, 300px)"],
-    cg-board square[style*="translate(300px, 300px)"],
-    cg-board square[style*="translate(500px, 300px)"],
-    cg-board square[style*="translate(0px, 400px)"],
-    cg-board square[style*="translate(200px, 400px)"],
-    cg-board square[style*="translate(400px, 400px)"],
-    cg-board square[style*="translate(100px, 500px)"],
-    cg-board square[style*="translate(300px, 500px)"],
-    cg-board square[style*="translate(500px, 500px)"] {
-      background-color: #f0d9b5 !important;
-    }
-
-    cg-board square[style*="translate(100px, 0px)"],
-    cg-board square[style*="translate(300px, 0px)"],
-    cg-board square[style*="translate(500px, 0px)"],
-    cg-board square[style*="translate(0px, 100px)"],
-    cg-board square[style*="translate(200px, 100px)"],
-    cg-board square[style*="translate(400px, 100px)"],
-    cg-board square[style*="translate(100px, 200px)"],
-    cg-board square[style*="translate(300px, 200px)"],
-    cg-board square[style*="translate(500px, 200px)"],
-    cg-board square[style*="translate(0px, 300px)"],
-    cg-board square[style*="translate(200px, 300px)"],
-    cg-board square[style*="translate(400px, 300px)"],
-    cg-board square[style*="translate(100px, 400px)"],
-    cg-board square[style*="translate(300px, 400px)"],
-    cg-board square[style*="translate(500px, 400px)"],
-    cg-board square[style*="translate(0px, 500px)"],
-    cg-board square[style*="translate(200px, 500px)"],
-    cg-board square[style*="translate(400px, 500px)"] {
-      background-color: #b58863 !important;
+      background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 6"><rect fill="%23f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="%23b58863" x="1" y="0" width="1" height="1"/><rect fill="%23f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="%23b58863" x="3" y="0" width="1" height="1"/><rect fill="%23f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="%23b58863" x="5" y="0" width="1" height="1"/><rect fill="%23b58863" x="0" y="1" width="1" height="1"/><rect fill="%23f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="%23b58863" x="2" y="1" width="1" height="1"/><rect fill="%23f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="%23b58863" x="4" y="1" width="1" height="1"/><rect fill="%23f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="%23f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="%23b58863" x="1" y="2" width="1" height="1"/><rect fill="%23f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="%23b58863" x="3" y="2" width="1" height="1"/><rect fill="%23f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="%23b58863" x="5" y="2" width="1" height="1"/><rect fill="%23b58863" x="0" y="3" width="1" height="1"/><rect fill="%23f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="%23b58863" x="2" y="3" width="1" height="1"/><rect fill="%23f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="%23b58863" x="4" y="3" width="1" height="1"/><rect fill="%23f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="%23f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="%23b58863" x="1" y="4" width="1" height="1"/><rect fill="%23f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="%23b58863" x="3" y="4" width="1" height="1"/><rect fill="%23f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="%23b58863" x="5" y="4" width="1" height="1"/><rect fill="%23b58863" x="0" y="5" width="1" height="1"/><rect fill="%23f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="%23b58863" x="2" y="5" width="1" height="1"/><rect fill="%23f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="%23b58863" x="4" y="5" width="1" height="1"/><rect fill="%23f0d9b5" x="5" y="5" width="1" height="1"/></svg>') !important;
+      background-size: 100% 100% !important;
     }
   </style>
 </head>

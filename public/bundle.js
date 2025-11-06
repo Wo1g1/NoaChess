@@ -9387,9 +9387,36 @@ let ffish;
 let board;
 let game;
 let chessground;
+let stockfishWorker = null;
+let stockfishReady = false;
 
-// Stockfish disabled due to SharedArrayBuffer issues
-// Will re-enable once Vercel headers are confirmed working
+// Initialize Stockfish Web Worker
+function initStockfish() {
+  try {
+    stockfishWorker = new Worker('stockfish.worker.js');
+    stockfishWorker.onmessage = function (event) {
+      const msg = event.data;
+      if (typeof msg === 'string') {
+        console.log('Stockfish:', msg);
+        if (msg.includes('uciok')) {
+          stockfishWorker.postMessage('setoption name UCI_Variant value noachess');
+          stockfishWorker.postMessage('isready');
+        } else if (msg.includes('readyok')) {
+          stockfishReady = true;
+          console.log('Fairy-Stockfish AI ready!');
+        }
+      }
+    };
+    stockfishWorker.onerror = function (error) {
+      console.log('Stockfish Worker error (using fallback AI):', error.message);
+      stockfishReady = false;
+    };
+    stockfishWorker.postMessage('uci');
+  } catch (error) {
+    console.log('Stockfish not available, using fallback AI:', error.message);
+    stockfishReady = false;
+  }
+}
 
 // Initialize Fairy-Stockfish
 new _ffishEs.default().then(loadedModule => {
@@ -9401,8 +9428,11 @@ new _ffishEs.default().then(loadedModule => {
     ffish.loadVariantConfig(ini);
     console.log('NoaChess variant loaded!');
 
-    // Initialize game
+    // Initialize game first
     initGame();
+
+    // Initialize Stockfish AI (non-blocking)
+    setTimeout(() => initStockfish(), 100);
   }).catch(error => {
     console.error('Failed to load NoaChess variant:', error);
     updateStatus('Error loading game. Please refresh.');
@@ -9520,7 +9550,58 @@ function makeAIMove() {
   if (game.isGameOver()) return;
   updateStatus('AI thinking...');
 
-  // Simple capture-preference AI
+  // Try Stockfish first
+  if (stockfishReady && stockfishWorker) {
+    const depth = parseInt(document.getElementById('depth').value) || 12;
+    let responseReceived = false;
+    const messageHandler = function (event) {
+      const msg = event.data;
+      if (typeof msg === 'string' && msg.startsWith('bestmove')) {
+        responseReceived = true;
+        const parts = msg.split(' ');
+        const bestMove = parts[1];
+        stockfishWorker.onmessage = function (e) {
+          const m = e.data;
+          if (typeof m === 'string') {
+            console.log('Stockfish:', m);
+            if (m.includes('readyok')) {
+              stockfishReady = true;
+            }
+          }
+        };
+        if (bestMove && bestMove !== '(none)') {
+          game.push(bestMove);
+          chessground.set({
+            fen: game.fen(),
+            turnColor: game.turn() ? 'white' : 'black',
+            movable: {
+              color: getMovableColor(),
+              dests: getLegalMoves()
+            },
+            lastMove: [bestMove.slice(0, 2), bestMove.slice(2, 4)]
+          });
+          updateGameStatus();
+        }
+      }
+    };
+    stockfishWorker.onmessage = messageHandler;
+    stockfishWorker.postMessage('ucinewgame');
+    stockfishWorker.postMessage('position fen ' + game.fen());
+    stockfishWorker.postMessage('go depth ' + depth);
+
+    // Fallback timeout
+    setTimeout(() => {
+      if (!responseReceived) {
+        console.log('Stockfish timeout, using fallback AI');
+        makeFallbackMove();
+      }
+    }, 5000);
+  } else {
+    // Fallback AI
+    makeFallbackMove();
+  }
+}
+function makeFallbackMove() {
   setTimeout(() => {
     const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
     if (moves.length === 0) return;
@@ -9529,14 +9610,12 @@ function makeAIMove() {
     const captureMoves = moves.filter(m => game.isCapture(m));
     let selectedMove;
     if (captureMoves.length > 0) {
-      // 70% chance to pick a capture move
       if (Math.random() < 0.7) {
         selectedMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
       } else {
         selectedMove = moves[Math.floor(Math.random() * moves.length)];
       }
     } else {
-      // No captures available, pick random
       selectedMove = moves[Math.floor(Math.random() * moves.length)];
     }
     game.push(selectedMove);
