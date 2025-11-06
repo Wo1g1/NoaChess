@@ -9393,7 +9393,7 @@ let stockfishReady = false;
 // Initialize Stockfish Web Worker
 function initStockfish() {
   try {
-    stockfishWorker = new Worker('stockfish.worker.js');
+    stockfishWorker = new Worker('uci-wrapper.js');
     stockfishWorker.onmessage = function (event) {
       const msg = event.data;
       if (typeof msg === 'string') {
@@ -9404,6 +9404,9 @@ function initStockfish() {
         } else if (msg.includes('readyok')) {
           stockfishReady = true;
           console.log('Fairy-Stockfish AI ready!');
+        } else if (msg.startsWith('error:')) {
+          console.error('Stockfish error:', msg);
+          stockfishReady = false;
         }
       }
     };
