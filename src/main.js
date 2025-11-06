@@ -26,6 +26,22 @@ new Module().then((loadedModule) => {
     });
 });
 
+function getMovableColor() {
+  const playWhite = document.getElementById('playWhite').checked;
+  const playBlack = document.getElementById('playBlack').checked;
+  const isWhiteTurn = game.turn();
+
+  // If both checked, allow both colors
+  if (playWhite && playBlack) return 'both';
+
+  // If current turn is for a human player, allow that color
+  if (isWhiteTurn && playWhite) return 'white';
+  if (!isWhiteTurn && playBlack) return 'black';
+
+  // Otherwise, no human moves (AI turn)
+  return 'none';
+}
+
 function initGame() {
   // Create new game
   game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
@@ -37,7 +53,7 @@ function initGame() {
     coordinates: true,
     movable: {
       free: false,
-      color: 'white',
+      color: getMovableColor(),
       dests: getLegalMoves()
     },
     events: {
@@ -50,6 +66,10 @@ function initGame() {
   });
 
   updateStatus('White to move');
+
+  // Add event listeners for checkboxes
+  document.getElementById('playWhite').addEventListener('change', updateMovableColor);
+  document.getElementById('playBlack').addEventListener('change', updateMovableColor);
 }
 
 function getLegalMoves() {
@@ -71,16 +91,37 @@ function getLegalMoves() {
   return dests;
 }
 
+function updateMovableColor() {
+  chessground.set({
+    movable: {
+      color: getMovableColor(),
+      dests: getLegalMoves()
+    }
+  });
+
+  // If AI should move now, make the move
+  if (shouldAIMove()) {
+    setTimeout(makeAIMove, 300);
+  } else {
+    updateGameStatus();
+  }
+}
+
 function onMove(from, to) {
   const move = from + to;
 
   // Check if move is legal
   if (game.legalMoves().includes(move)) {
     game.push(move);
+
+    const turnColor = game.turn() ? 'white' : 'black';
+    const movableColor = getMovableColor();
+
     chessground.set({
       fen: game.fen(),
-      turnColor: game.turn() ? 'white' : 'black',
+      turnColor: turnColor,
       movable: {
+        color: movableColor,
         dests: getLegalMoves()
       }
     });
@@ -112,18 +153,26 @@ function makeAIMove() {
 
   updateStatus('AI thinking...');
 
-  const depth = parseInt(document.getElementById('depth').value) || 12;
-  const bestMove = game.ai('noachess', depth, 'bestmove');
+  // Get all legal moves and pick a random one
+  const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
+  if (moves.length === 0) return;
 
-  if (bestMove) {
-    game.push(bestMove);
+  const randomMove = moves[Math.floor(Math.random() * moves.length)];
+
+  if (randomMove) {
+    game.push(randomMove);
+
+    const turnColor = game.turn() ? 'white' : 'black';
+    const movableColor = getMovableColor();
+
     chessground.set({
       fen: game.fen(),
-      turnColor: game.turn() ? 'white' : 'black',
+      turnColor: turnColor,
       movable: {
+        color: movableColor,
         dests: getLegalMoves()
       },
-      lastMove: [bestMove.slice(0, 2), bestMove.slice(2, 4)]
+      lastMove: [randomMove.slice(0, 2), randomMove.slice(2, 4)]
     });
 
     updateGameStatus();
@@ -179,10 +228,14 @@ window.undoMove = function() {
       }
     }
 
+    const turnColor = game.turn() ? 'white' : 'black';
+    const movableColor = getMovableColor();
+
     chessground.set({
       fen: game.fen(),
-      turnColor: game.turn() ? 'white' : 'black',
+      turnColor: turnColor,
       movable: {
+        color: movableColor,
         dests: getLegalMoves()
       }
     });
