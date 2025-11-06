@@ -6,38 +6,52 @@ let ffish;
 let board;
 let game;
 let chessground;
-let stockfishWorker = null;
+let stockfishEngine = null;
 let stockfishReady = false;
 
-// Initialize Stockfish Web Worker
+// Initialize Stockfish (main thread)
 function initStockfish() {
   try {
-    stockfishWorker = new Worker('uci-wrapper.js');
+    // Load Stockfish script dynamically
+    const script = document.createElement('script');
+    script.src = 'stockfish.js';
+    script.onload = function() {
+      console.log('Stockfish script loaded, initializing...');
 
-    stockfishWorker.onmessage = function(event) {
-      const msg = event.data;
-      if (typeof msg === 'string') {
-        console.log('Stockfish:', msg);
+      // Initialize Stockfish WASM module
+      if (typeof Stockfish !== 'undefined') {
+        Stockfish().then(sf => {
+          stockfishEngine = sf;
 
-        if (msg.includes('uciok')) {
-          stockfishWorker.postMessage('setoption name UCI_Variant value noachess');
-          stockfishWorker.postMessage('isready');
-        } else if (msg.includes('readyok')) {
-          stockfishReady = true;
-          console.log('Fairy-Stockfish AI ready!');
-        } else if (msg.startsWith('error:')) {
-          console.error('Stockfish error:', msg);
+          // Add message listener
+          stockfishEngine.addMessageListener((line) => {
+            console.log('Stockfish:', line);
+
+            if (line.includes('uciok')) {
+              stockfishEngine.postMessage('setoption name UCI_Variant value noachess');
+              stockfishEngine.postMessage('isready');
+            } else if (line.includes('readyok')) {
+              stockfishReady = true;
+              console.log('Fairy-Stockfish AI ready!');
+            }
+          });
+
+          // Start UCI protocol
+          stockfishEngine.postMessage('uci');
+        }).catch(err => {
+          console.error('Failed to initialize Stockfish WASM:', err);
           stockfishReady = false;
-        }
+        });
+      } else {
+        console.error('Stockfish function not found');
+        stockfishReady = false;
       }
     };
-
-    stockfishWorker.onerror = function(error) {
-      console.log('Stockfish Worker error (using fallback AI):', error.message);
+    script.onerror = function() {
+      console.log('Failed to load Stockfish, using fallback AI');
       stockfishReady = false;
     };
-
-    stockfishWorker.postMessage('uci');
+    document.head.appendChild(script);
   } catch (error) {
     console.log('Stockfish not available, using fallback AI:', error.message);
     stockfishReady = false;
@@ -196,26 +210,16 @@ function makeAIMove() {
   updateStatus('AI thinking...');
 
   // Try Stockfish first
-  if (stockfishReady && stockfishWorker) {
+  if (stockfishReady && stockfishEngine) {
     const depth = parseInt(document.getElementById('depth').value) || 12;
     let responseReceived = false;
 
-    const messageHandler = function(event) {
-      const msg = event.data;
-      if (typeof msg === 'string' && msg.startsWith('bestmove')) {
+    // Set up temporary message handler for this move
+    const tempHandler = (line) => {
+      if (line.startsWith('bestmove')) {
         responseReceived = true;
-        const parts = msg.split(' ');
+        const parts = line.split(' ');
         const bestMove = parts[1];
-
-        stockfishWorker.onmessage = function(e) {
-          const m = e.data;
-          if (typeof m === 'string') {
-            console.log('Stockfish:', m);
-            if (m.includes('readyok')) {
-              stockfishReady = true;
-            }
-          }
-        };
 
         if (bestMove && bestMove !== '(none)') {
           game.push(bestMove);
@@ -235,10 +239,13 @@ function makeAIMove() {
       }
     };
 
-    stockfishWorker.onmessage = messageHandler;
-    stockfishWorker.postMessage('ucinewgame');
-    stockfishWorker.postMessage('position fen ' + game.fen());
-    stockfishWorker.postMessage('go depth ' + depth);
+    // Add temporary handler
+    stockfishEngine.addMessageListener(tempHandler);
+
+    // Send position and search command
+    stockfishEngine.postMessage('ucinewgame');
+    stockfishEngine.postMessage('position fen ' + game.fen());
+    stockfishEngine.postMessage('go depth ' + depth);
 
     // Fallback timeout
     setTimeout(() => {
