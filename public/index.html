@@ -215,18 +215,15 @@
     }
 
     cg-board square.white,
-    cg-board square.light {
+    cg-board square.light,
+    cg-board square:nth-child(odd) {
       background-color: #f0d9b5 !important;
     }
 
     cg-board square.black,
-    cg-board square.dark {
+    cg-board square.dark,
+    cg-board square:nth-child(even) {
       background-color: #b58863 !important;
-    }
-
-    /* Debug: show all pieces with background */
-    .cg-wrap piece {
-      outline: 1px solid red;
     }
   </style>
 </head>

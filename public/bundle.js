@@ -9422,9 +9422,6 @@ function initGame() {
   // Create new game
   game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
 
-  // Debug: log available methods
-  console.log('Game methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(game)));
-
   // Initialize chessground
   const boardElement = document.getElementById('board');
   chessground = Chessground(boardElement, {
@@ -9518,12 +9515,35 @@ function makeAIMove() {
   if (game.isGameOver()) return;
   updateStatus('AI thinking...');
 
-  // Get all legal moves and pick a random one
+  // Get all legal moves
   const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
   if (moves.length === 0) return;
-  const randomMove = moves[Math.floor(Math.random() * moves.length)];
-  if (randomMove) {
-    game.push(randomMove);
+
+  // Simple AI: Prefer captures, otherwise random
+  let selectedMove;
+  const captureMoves = [];
+
+  // Check each move to see if it's a capture
+  moves.forEach(move => {
+    const currentFen = game.fen();
+    game.push(move);
+    const newFen = game.fen();
+    game.pop();
+
+    // If piece count decreased, it's likely a capture
+    if (game.isCapture(move)) {
+      captureMoves.push(move);
+    }
+  });
+
+  // Prefer capture moves 70% of the time
+  if (captureMoves.length > 0 && Math.random() < 0.7) {
+    selectedMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
+  } else {
+    selectedMove = moves[Math.floor(Math.random() * moves.length)];
+  }
+  if (selectedMove) {
+    game.push(selectedMove);
     const turnColor = game.turn() ? 'white' : 'black';
     const movableColor = getMovableColor();
     chessground.set({
@@ -9533,7 +9553,7 @@ function makeAIMove() {
         color: movableColor,
         dests: getLegalMoves()
       },
-      lastMove: [randomMove.slice(0, 2), randomMove.slice(2, 4)]
+      lastMove: [selectedMove.slice(0, 2), selectedMove.slice(2, 4)]
     });
     updateGameStatus();
   }
