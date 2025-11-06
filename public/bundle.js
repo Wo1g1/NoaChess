@@ -9490,37 +9490,74 @@ function initGame() {
 
   // Apply board colors
   applyBoardColors();
+
+  // Reapply colors on any board change
+  const observer = new MutationObserver(() => {
+    applyBoardColors();
+  });
+  observer.observe(boardElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['style']
+  });
 }
 function applyBoardColors() {
-  // Try multiple times to ensure squares are rendered
-  const tryApply = (attempts = 0) => {
-    const squares = document.querySelectorAll('cg-board square');
-    if (squares.length === 0 && attempts < 10) {
-      setTimeout(() => tryApply(attempts + 1), 100);
+  const squares = document.querySelectorAll('cg-board square');
+  if (squares.length === 0) {
+    console.log('No squares found, retrying...');
+    setTimeout(applyBoardColors, 100);
+    return;
+  }
+  console.log(`Applying colors to ${squares.length} squares`);
+  let successCount = 0;
+  squares.forEach((square, index) => {
+    const style = square.getAttribute('style');
+    if (!style) {
+      console.log(`Square ${index} has no style`);
       return;
     }
-    console.log(`Applying colors to ${squares.length} squares`);
-    squares.forEach(square => {
-      const style = square.getAttribute('style');
-      if (!style) return;
 
-      // Extract translate coordinates
-      const match = style.match(/translate\((-?\d+)px,\s*(-?\d+)px\)/);
-      if (!match) return;
-      const x = parseInt(match[1]);
-      const y = parseInt(match[2]);
+    // Extract translate coordinates
+    const match = style.match(/translate\((-?\d+)px,\s*(-?\d+)px\)/);
+    if (!match) {
+      console.log(`Square ${index} style doesn't match: ${style}`);
+      return;
+    }
+    const x = parseInt(match[1]);
+    const y = parseInt(match[2]);
 
-      // Convert pixel coordinates to file/rank (assuming 100px per square)
-      const file = Math.floor(x / 100); // 0-5 (a-f)
-      const rank = Math.floor(y / 100); // 0-5 (1-6)
+    // Convert pixel coordinates to file/rank
+    const file = Math.floor(x / 100); // 0-5 (a-f)
+    const rank = Math.floor(y / 100); // 0-5 (1-6)
 
-      // Board colors alternate: (file + rank) even = light, odd = dark
-      const color = (file + rank) % 2 === 0 ? '#f0d9b5' : '#b58863';
-      square.style.setProperty('background-color', color, 'important');
-      console.log(`Square ${file},${rank}: ${color}`);
-    });
-  };
-  setTimeout(() => tryApply(), 100);
+    // Board colors alternate: (file + rank) even = light, odd = dark
+    const isLight = (file + rank) % 2 === 0;
+    const color = isLight ? '#f0d9b5' : '#b58863';
+
+    // Apply color multiple ways to ensure it sticks
+    square.style.backgroundColor = color;
+    square.style.setProperty('background-color', color, 'important');
+    square.setAttribute('data-color', isLight ? 'light' : 'dark');
+    successCount++;
+  });
+  console.log(`Successfully colored ${successCount} squares`);
+
+  // Also add dynamic CSS rule
+  if (!document.getElementById('board-colors-style')) {
+    const style = document.createElement('style');
+    style.id = 'board-colors-style';
+    style.textContent = `
+      cg-board square[data-color="light"] {
+        background-color: #f0d9b5 !important;
+      }
+      cg-board square[data-color="dark"] {
+        background-color: #b58863 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    console.log('Added CSS rules for board colors');
+  }
 }
 function getLegalMoves() {
   const dests = new Map();
