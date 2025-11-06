@@ -9390,27 +9390,33 @@ let chessground;
 let stockfish = null;
 let stockfishReady = false;
 
-// Initialize Stockfish AI
+// Initialize Stockfish AI (async, separate from game initialization)
 function initStockfish() {
   if (typeof Stockfish === 'undefined') {
-    console.log('Stockfish not available, AI disabled');
+    console.log('Stockfish not available, using fallback AI');
     return;
   }
-  Stockfish().then(sf => {
-    stockfish = sf;
-    stockfish.addMessageListener(msg => {
-      console.log('Stockfish:', msg);
+  try {
+    Stockfish().then(sf => {
+      stockfish = sf;
+      stockfish.addMessageListener(msg => {
+        console.log('Stockfish:', msg);
+      });
+      stockfish.postMessage('uci');
+      stockfish.postMessage('setoption name UCI_Variant value noachess');
+      stockfish.postMessage('isready');
+      setTimeout(() => {
+        stockfishReady = true;
+        console.log('Fairy-Stockfish AI ready!');
+      }, 500);
+    }).catch(err => {
+      console.error('Failed to load Stockfish:', err);
+      console.log('Using fallback AI');
     });
-    stockfish.postMessage('uci');
-    stockfish.postMessage('setoption name UCI_Variant value noachess');
-    stockfish.postMessage('isready');
-    setTimeout(() => {
-      stockfishReady = true;
-      console.log('Fairy-Stockfish AI ready!');
-    }, 500);
-  }).catch(err => {
-    console.error('Failed to load Stockfish:', err);
-  });
+  } catch (err) {
+    console.error('Stockfish initialization error:', err);
+    console.log('Using fallback AI');
+  }
 }
 
 // Initialize Fairy-Stockfish
@@ -9422,8 +9428,18 @@ new _ffishEs.default().then(loadedModule => {
   fetch('./noachess.ini').then(response => response.text()).then(ini => {
     ffish.loadVariantConfig(ini);
     console.log('NoaChess variant loaded!');
-    initStockfish();
+
+    // Initialize game first (critical)
     initGame();
+
+    // Try to initialize Stockfish AI separately (non-critical)
+    setTimeout(() => {
+      try {
+        initStockfish();
+      } catch (e) {
+        console.log('Stockfish unavailable, using fallback AI');
+      }
+    }, 100);
   }).catch(error => {
     console.error('Failed to load NoaChess variant:', error);
     updateStatus('Error loading game. Please refresh.');
@@ -9575,12 +9591,26 @@ function makeAIMove() {
   if (game.isGameOver()) return;
   updateStatus('AI thinking...');
   if (!stockfishReady || !stockfish) {
-    // Fallback: random move
+    // Fallback: Capture-preference AI
     setTimeout(() => {
       const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
       if (moves.length === 0) return;
-      const move = moves[Math.floor(Math.random() * moves.length)];
-      game.push(move);
+
+      // Prioritize captures
+      const captureMoves = moves.filter(m => game.isCapture(m));
+      let selectedMove;
+      if (captureMoves.length > 0) {
+        // 70% chance to pick a capture move
+        if (Math.random() < 0.7) {
+          selectedMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
+        } else {
+          selectedMove = moves[Math.floor(Math.random() * moves.length)];
+        }
+      } else {
+        // No captures available, pick random
+        selectedMove = moves[Math.floor(Math.random() * moves.length)];
+      }
+      game.push(selectedMove);
       chessground.set({
         fen: game.fen(),
         turnColor: game.turn() ? 'white' : 'black',
@@ -9588,7 +9618,7 @@ function makeAIMove() {
           color: getMovableColor(),
           dests: getLegalMoves()
         },
-        lastMove: [move.slice(0, 2), move.slice(2, 4)]
+        lastMove: [selectedMove.slice(0, 2), selectedMove.slice(2, 4)]
       });
       updateGameStatus();
     }, 300);
