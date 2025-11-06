@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Cache
+.cache
+.parcel-cache
+
+# Build tools
+.vercel
+
+# OS files
+.DS_Store
+Thumbs.db

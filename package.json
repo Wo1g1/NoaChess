@@ -1,0 +1,22 @@
+{
+  "name": "noachess",
+  "version": "1.0.0",
+  "description": "NoaChess - A 6×6 chess variant with unique piece movements",
+  "scripts": {
+    "build": "browserify -p esmify src/main.js -o public/bundle.js",
+    "serve": "serve public -p 5000"
+  },
+  "keywords": ["chess", "noachess", "fairy-stockfish"],
+  "author": "Wo1g1",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "chessgroundx": "^10.6.3",
+    "ffish-es6": "0.7.7",
+    "fairy-stockfish-nnue.wasm": "1.1.9"
+  },
+  "devDependencies": {
+    "browserify": "^17.0.0",
+    "esmify": "^2.1.1",
+    "serve": "^14.2.1"
+  }
+}
