@@ -203,22 +203,30 @@
 
     cg-board {
       background-image: none !important;
+      background-color: #f0d9b5;
     }
 
-    cg-board square.white {
+    cg-board square {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(100% / 6);
+      height: calc(100% / 6);
+    }
+
+    cg-board square.white,
+    cg-board square.light {
       background-color: #f0d9b5 !important;
     }
 
-    cg-board square.black {
+    cg-board square.black,
+    cg-board square.dark {
       background-color: #b58863 !important;
     }
 
-    .cg-wrap square.white {
-      background-color: #f0d9b5 !important;
-    }
-
-    .cg-wrap square.black {
-      background-color: #b58863 !important;
+    /* Debug: show all pieces with background */
+    .cg-wrap piece {
+      outline: 1px solid red;
     }
   </style>
 </head>

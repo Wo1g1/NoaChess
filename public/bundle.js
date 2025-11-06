@@ -9422,6 +9422,9 @@ function initGame() {
   // Create new game
   game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
 
+  // Debug: log available methods
+  console.log('Game methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(game)));
+
   // Initialize chessground
   const boardElement = document.getElementById('board');
   chessground = Chessground(boardElement, {

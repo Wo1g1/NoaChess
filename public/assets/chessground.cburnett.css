@@ -37,17 +37,25 @@
 }
 
 /** Leaper pieces (use unique icon style) */
-.cg-wrap piece.l-piece.white {
+.cg-wrap piece.l-piece.white,
+.cg-wrap piece.leaper.white,
+.cg-wrap piece.l.white {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNSI+PGNpcmNsZSBjeD0iMjIuNSIgY3k9IjIyLjUiIHI9IjEyIi8+PHBhdGggZD0iTTE2IDE2bDEzIDEzbS0xMyAwbDEzLTEzIiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+');
 }
-.cg-wrap piece.l-piece.black {
+.cg-wrap piece.l-piece.black,
+.cg-wrap piece.leaper.black,
+.cg-wrap piece.l.black {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0iIzAwMCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNSI+PGNpcmNsZSBjeD0iMjIuNSIgY3k9IjIyLjUiIHI9IjEyIi8+PHBhdGggZD0iTTE2IDE2bDEzIDEzbS0xMyAwbDEzLTEzIiBzdHJva2U9IiNlY2VjZWMiIHN0cm9rZS13aWR0aD0iMiIvPjwvZz48L3N2Zz4=');
 }
 
 /** General pieces (promoted pawns - similar to king but simplified) */
-.cg-wrap piece.g-piece.white {
+.cg-wrap piece.g-piece.white,
+.cg-wrap piece.general.white,
+.cg-wrap piece.g.white {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNSI+PGNpcmNsZSBjeD0iMjIuNSIgY3k9IjE4IiByPSI2Ii8+PHBhdGggZD0iTTEyIDM1YzAgMCA0LTggMTAuNS04czEwLjUgOCAxMC41IDh6Ii8+PHBhdGggZD0iTTE1IDI4YzAtMyA0LTUgNy41LTVzNy41IDIgNy41IDV6Ii8+PC9nPjwvc3ZnPg==');
 }
-.cg-wrap piece.g-piece.black {
+.cg-wrap piece.g-piece.black,
+.cg-wrap piece.general.black,
+.cg-wrap piece.g.black {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+PGcgZmlsbD0iIzAwMCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNSI+PGNpcmNsZSBjeD0iMjIuNSIgY3k9IjE4IiByPSI2IiBzdHJva2U9IiNlY2VjZWMiLz48cGF0aCBkPSJNMTIgMzVjMCAwIDQtOCAxMC41LThzMTAuNSA4IDEwLjUgOHoiIHN0cm9rZT0iI2VjZWNlYyIvPjxwYXRoIGQ9Ik0xNSAyOGMwLTMgNC01IDcuNS01czcu NSAyIDcuNSA1eiIgc3Ryb2tlPSIjZWNlY2VjIi8+PC9nPjwvc3ZnPg==');
 }
