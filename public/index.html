@@ -214,15 +214,55 @@
       height: calc(100% / 6);
     }
 
-    cg-board square.white,
-    cg-board square.light,
-    cg-board square:nth-child(odd) {
+    /* Chessboard pattern for 6x6 */
+    cg-board square.white {
       background-color: #f0d9b5 !important;
     }
 
-    cg-board square.black,
-    cg-board square.dark,
-    cg-board square:nth-child(even) {
+    cg-board square.black {
+      background-color: #b58863 !important;
+    }
+
+    /* Fallback if classes aren't set */
+    cg-board square[style*="translate(0px, 0px)"],
+    cg-board square[style*="translate(200px, 0px)"],
+    cg-board square[style*="translate(400px, 0px)"],
+    cg-board square[style*="translate(100px, 100px)"],
+    cg-board square[style*="translate(300px, 100px)"],
+    cg-board square[style*="translate(500px, 100px)"],
+    cg-board square[style*="translate(0px, 200px)"],
+    cg-board square[style*="translate(200px, 200px)"],
+    cg-board square[style*="translate(400px, 200px)"],
+    cg-board square[style*="translate(100px, 300px)"],
+    cg-board square[style*="translate(300px, 300px)"],
+    cg-board square[style*="translate(500px, 300px)"],
+    cg-board square[style*="translate(0px, 400px)"],
+    cg-board square[style*="translate(200px, 400px)"],
+    cg-board square[style*="translate(400px, 400px)"],
+    cg-board square[style*="translate(100px, 500px)"],
+    cg-board square[style*="translate(300px, 500px)"],
+    cg-board square[style*="translate(500px, 500px)"] {
+      background-color: #f0d9b5 !important;
+    }
+
+    cg-board square[style*="translate(100px, 0px)"],
+    cg-board square[style*="translate(300px, 0px)"],
+    cg-board square[style*="translate(500px, 0px)"],
+    cg-board square[style*="translate(0px, 100px)"],
+    cg-board square[style*="translate(200px, 100px)"],
+    cg-board square[style*="translate(400px, 100px)"],
+    cg-board square[style*="translate(100px, 200px)"],
+    cg-board square[style*="translate(300px, 200px)"],
+    cg-board square[style*="translate(500px, 200px)"],
+    cg-board square[style*="translate(0px, 300px)"],
+    cg-board square[style*="translate(200px, 300px)"],
+    cg-board square[style*="translate(400px, 300px)"],
+    cg-board square[style*="translate(100px, 400px)"],
+    cg-board square[style*="translate(300px, 400px)"],
+    cg-board square[style*="translate(500px, 400px)"],
+    cg-board square[style*="translate(0px, 500px)"],
+    cg-board square[style*="translate(200px, 500px)"],
+    cg-board square[style*="translate(400px, 500px)"] {
       background-color: #b58863 !important;
     }
   </style>

@@ -6,6 +6,35 @@ let ffish;
 let board;
 let game;
 let chessground;
+let stockfishWorker = null;
+let stockfishReady = false;
+
+// Initialize Stockfish Worker
+function initStockfish() {
+  try {
+    stockfishWorker = new Worker('stockfish.worker.js');
+
+    stockfishWorker.onmessage = function(event) {
+      const message = event.data;
+      if (typeof message === 'string') {
+        console.log('Stockfish:', message);
+        if (message === 'uciok') {
+          stockfishReady = true;
+          // Set variant
+          stockfishWorker.postMessage('setoption name UCI_Variant value noachess');
+          stockfishWorker.postMessage('isready');
+        } else if (message === 'readyok') {
+          console.log('Stockfish ready for NoaChess!');
+        }
+      }
+    };
+
+    stockfishWorker.postMessage('uci');
+  } catch(e) {
+    console.log('Stockfish worker not available:', e);
+    stockfishReady = false;
+  }
+}
 
 // Initialize Fairy-Stockfish
 new Module().then((loadedModule) => {
@@ -18,6 +47,7 @@ new Module().then((loadedModule) => {
     .then(ini => {
       ffish.loadVariantConfig(ini);
       console.log('NoaChess variant loaded!');
+      initStockfish();
       initGame();
     })
     .catch(error => {
@@ -153,51 +183,87 @@ function makeAIMove() {
 
   updateStatus('AI thinking...');
 
-  // Get all legal moves
-  const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
-  if (moves.length === 0) return;
+  const depth = parseInt(document.getElementById('depth').value) || 12;
 
-  // Simple AI: Prefer captures, otherwise random
-  let selectedMove;
-  const captureMoves = [];
+  // Try to use Stockfish if available
+  if (stockfishReady && stockfishWorker) {
+    let bestMove = null;
 
-  // Check each move to see if it's a capture
-  moves.forEach(move => {
-    const currentFen = game.fen();
-    game.push(move);
-    const newFen = game.fen();
-    game.pop();
+    const messageHandler = (event) => {
+      const message = event.data;
+      if (typeof message === 'string') {
+        console.log('Engine:', message);
+        if (message.startsWith('bestmove')) {
+          const parts = message.split(' ');
+          bestMove = parts[1];
 
-    // If piece count decreased, it's likely a capture
-    if (game.isCapture(move)) {
-      captureMoves.push(move);
-    }
-  });
+          stockfishWorker.removeEventListener('message', messageHandler);
 
-  // Prefer capture moves 70% of the time
-  if (captureMoves.length > 0 && Math.random() < 0.7) {
-    selectedMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
+          if (bestMove && bestMove !== '(none)') {
+            game.push(bestMove);
+
+            const turnColor = game.turn() ? 'white' : 'black';
+            const movableColor = getMovableColor();
+
+            chessground.set({
+              fen: game.fen(),
+              turnColor: turnColor,
+              movable: {
+                color: movableColor,
+                dests: getLegalMoves()
+              },
+              lastMove: [bestMove.slice(0, 2), bestMove.slice(2, 4)]
+            });
+
+            updateGameStatus();
+          }
+        }
+      }
+    };
+
+    stockfishWorker.addEventListener('message', messageHandler);
+    stockfishWorker.postMessage('ucinewgame');
+    stockfishWorker.postMessage(`position fen ${game.fen()}`);
+    stockfishWorker.postMessage(`go depth ${depth}`);
   } else {
-    selectedMove = moves[Math.floor(Math.random() * moves.length)];
-  }
+    // Fallback: Simple AI with capture preference
+    const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
+    if (moves.length === 0) return;
 
-  if (selectedMove) {
-    game.push(selectedMove);
+    let selectedMove;
+    const captureMoves = [];
 
-    const turnColor = game.turn() ? 'white' : 'black';
-    const movableColor = getMovableColor();
-
-    chessground.set({
-      fen: game.fen(),
-      turnColor: turnColor,
-      movable: {
-        color: movableColor,
-        dests: getLegalMoves()
-      },
-      lastMove: [selectedMove.slice(0, 2), selectedMove.slice(2, 4)]
+    moves.forEach(move => {
+      if (game.isCapture(move)) {
+        captureMoves.push(move);
+      }
     });
 
-    updateGameStatus();
+    // Prefer capture moves 70% of the time
+    if (captureMoves.length > 0 && Math.random() < 0.7) {
+      selectedMove = captureMoves[Math.floor(Math.random() * captureMoves.length)];
+    } else {
+      selectedMove = moves[Math.floor(Math.random() * moves.length)];
+    }
+
+    if (selectedMove) {
+      game.push(selectedMove);
+
+      const turnColor = game.turn() ? 'white' : 'black';
+      const movableColor = getMovableColor();
+
+      chessground.set({
+        fen: game.fen(),
+        turnColor: turnColor,
+        movable: {
+          color: movableColor,
+          dests: getLegalMoves()
+        },
+        lastMove: [selectedMove.slice(0, 2), selectedMove.slice(2, 4)]
+      });
+
+      updateGameStatus();
+    }
   }
 }
 
