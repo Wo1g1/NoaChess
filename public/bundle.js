@@ -9395,49 +9395,43 @@ let variantsIni = '';
 
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
-  // Load stockfish.js script
-  const script = document.createElement('script');
-  script.src = 'stockfish.js';
-  script.async = true;
-  script.onload = () => {
-    console.log('Stockfish script loaded');
+  console.log('Initializing Stockfish...');
 
-    // Initialize Stockfish WASM
-    if (typeof Stockfish !== 'undefined') {
-      Stockfish().then(sf => {
-        stockfishEngine = sf;
-        console.log('Fairy-Stockfish engine initialized');
+  // Stockfish is already loaded via script tag in HTML
+  if (typeof Stockfish === 'undefined') {
+    console.error('Stockfish not found!');
+    return;
+  }
 
-        // Setup message listener
-        stockfishEngine.addMessageListener(line => {
-          console.log('SF:', line);
-          if (line.startsWith('Fairy-Stockfish')) {
-            // Load variant configuration
-            window.prompt = function () {
-              return variantsIni + '\nEOF';
-            };
-            stockfishEngine.postMessage('load <<EOF');
-            stockfishEngine.postMessage('uci');
-          } else if (line.includes('uciok')) {
-            stockfishEngine.postMessage('setoption name UCI_Variant value noachess');
-            stockfishEngine.postMessage('isready');
-          } else if (line.includes('readyok')) {
-            stockfishReady = true;
-            console.log('Fairy-Stockfish ready!');
-          }
-        });
+  // Initialize Stockfish WASM
+  Stockfish().then(sf => {
+    stockfishEngine = sf;
+    console.log('Fairy-Stockfish engine initialized');
 
-        // Start engine
+    // Setup message listener
+    stockfishEngine.addMessageListener(line => {
+      console.log('SF:', line);
+      if (line.startsWith('Fairy-Stockfish')) {
+        // Load variant configuration
+        window.prompt = function () {
+          return variantsIni + '\nEOF';
+        };
+        stockfishEngine.postMessage('load <<EOF');
         stockfishEngine.postMessage('uci');
-      }).catch(err => {
-        console.error('Failed to initialize Stockfish:', err);
-      });
-    }
-  };
-  script.onerror = () => {
-    console.error('Failed to load stockfish.js');
-  };
-  document.head.appendChild(script);
+      } else if (line.includes('uciok')) {
+        stockfishEngine.postMessage('setoption name UCI_Variant value noachess');
+        stockfishEngine.postMessage('isready');
+      } else if (line.includes('readyok')) {
+        stockfishReady = true;
+        console.log('Fairy-Stockfish ready for analysis!');
+      }
+    });
+
+    // Start engine
+    stockfishEngine.postMessage('uci');
+  }).catch(err => {
+    console.error('Failed to initialize Stockfish:', err);
+  });
 }
 
 // Initialize Fairy-Stockfish
