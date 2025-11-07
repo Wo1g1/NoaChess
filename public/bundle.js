@@ -9448,8 +9448,10 @@ new _ffishEs.default().then(loadedModule => {
   // Load NoaChess variant
   fetch('./noachess.ini').then(response => response.text()).then(ini => {
     variantsIni = ini;
+    console.log('NoaChess INI content:', ini);
     ffish.loadVariantConfig(ini);
     console.log('NoaChess variant loaded!');
+    console.log('Available variants:', ffish.variants());
 
     // Initialize game
     initGame();
@@ -9479,6 +9481,8 @@ function getMovableColor() {
 function initGame() {
   // Create new game
   game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
+  console.log('Game initialized with variant:', game.variant());
+  console.log('Legal moves from start:', game.legalMoves());
 
   // Initialize chessground
   const boardElement = document.getElementById('board');
