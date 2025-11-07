@@ -169,20 +169,30 @@ function updateMovableColor() {
 function onMove(from, to) {
   let move = from + to;
 
-  // Check if this is a promotion move
-  const legalMoves = game.legalMoves().split(' ');
+  // Get all legal moves
+  const legalMoves = game.legalMoves().split(' ').filter(m => m.length >= 4);
+
+  console.log('Attempting move:', move);
+  console.log('Legal moves:', legalMoves.filter(m => m.startsWith(from)));
 
   // Find the actual legal move (might include promotion piece)
-  let actualMove = move;
-  for (let legalMove of legalMoves) {
-    if (legalMove.startsWith(move)) {
-      actualMove = legalMove;
-      break;
+  let actualMove = null;
+
+  // First, try exact match
+  if (legalMoves.includes(move)) {
+    actualMove = move;
+  } else {
+    // Try to find a move that starts with our move (promotion case)
+    const matchingMoves = legalMoves.filter(m => m.startsWith(move));
+    if (matchingMoves.length > 0) {
+      actualMove = matchingMoves[0]; // Take first matching (should be promotion)
+      console.log('Found promotion move:', actualMove);
     }
   }
 
   // Check if move is legal
-  if (legalMoves.includes(actualMove)) {
+  if (actualMove && legalMoves.includes(actualMove)) {
+    console.log('Executing move:', actualMove);
     game.push(actualMove);
 
     const turnColor = game.turn() ? 'white' : 'black';
@@ -205,6 +215,7 @@ function onMove(from, to) {
     }
   } else {
     // Illegal move, reset position
+    console.log('Illegal move:', move);
     chessground.set({
       fen: game.fen()
     });
