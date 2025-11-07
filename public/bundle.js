@@ -9521,6 +9521,11 @@ function getLegalMoves() {
       dests.get(from).push(to);
     }
   });
+
+  // Debug: log piece movements
+  dests.forEach((destinations, square) => {
+    console.log(`${square} can move to:`, destinations.join(', '));
+  });
   return dests;
 }
 function updateMovableColor() {

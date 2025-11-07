@@ -151,6 +151,11 @@ function getLegalMoves() {
     }
   });
 
+  // Debug: log piece movements
+  dests.forEach((destinations, square) => {
+    console.log(`${square} can move to:`, destinations.join(', '));
+  });
+
   return dests;
 }
 
