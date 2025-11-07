@@ -216,6 +216,229 @@
     .cg-wrap piece.general.black {
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+CiAgPGcgZmlsbD0iIzAwMCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj4KICAgIDwhLS0gSGVhZCB3aXRoIHNtYWxsIGNyb3duIC0tPgogICAgPGNpcmNsZSBjeD0iMjIuNSIgY3k9IjEzIiByPSI0IiBmaWxsPSIjMDAwIi8+CiAgICA8cGF0aCBkPSJNMTkgMTBoN2wtMSAzaC01eiIgZmlsbD0iIzAwMCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgogICAgPCEtLSBCb2R5IChlbmhhbmNlZCBwYXduIHN0eWxlKSAtLT4KICAgIDxwYXRoIGQ9Ik0xOSAxNmMwLTEuNSAxLjUtMi41IDMuNS0yLjVzMy41IDEgMy41IDIuNSIgZmlsbD0iIzAwMCIvPgogICAgPHBhdGggZD0iTTE3IDI1YzAgMCAyLTQgNS41LTRzNS41IDQgNS41IDQiIGZpbGw9IiMwMDAiLz4KICAgIDwhLS0gQmFzZSAtLT4KICAgIDxwYXRoIGQ9Ik0xMyAzNWMwIDAgMy01IDkuNS01czkuNSA1IDkuNSA1eiIgZmlsbD0iIzAwMCIvPgogICAgPHBhdGggZD0iTTEyIDM2aDIxIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZT0iI2ZmZiIvPgogIDwvZz4KPC9zdmc+Cg==') !important;
     }
+
+    /* Difficulty radio buttons */
+    .difficulty-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+
+    .difficulty-option {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      border: 2px solid #8B4513;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .difficulty-option:hover {
+      background: #8B4513;
+      color: white;
+    }
+
+    .difficulty-option input[type="radio"] {
+      margin-right: 5px;
+    }
+
+    .difficulty-option:has(input:checked) {
+      background: #8B4513;
+      color: white;
+    }
+
+    body.dark .difficulty-option {
+      border-color: #a0642f;
+    }
+
+    body.dark .difficulty-option:hover {
+      background: #a0642f;
+    }
+
+    body.dark .difficulty-option:has(input:checked) {
+      background: #a0642f;
+    }
+
+    /* Rules link */
+    .rules-link {
+      display: block;
+      text-align: center;
+      padding: 12px;
+      background: #8B4513;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .rules-link:hover {
+      background: #6d3410;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      overflow: auto;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 3% auto;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 800px;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark .modal-content {
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      font-size: 30px;
+      font-weight: bold;
+      color: #aaa;
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      color: #000;
+    }
+
+    body.dark .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: #8B4513;
+    }
+
+    body.dark .modal-content h2 {
+      color: #a0642f;
+    }
+
+    .modal-content h3 {
+      margin-top: 20px;
+      margin-bottom: 10px;
+      color: #8B4513;
+    }
+
+    body.dark .modal-content h3 {
+      color: #a0642f;
+    }
+
+    .modal-content h4 {
+      margin-top: 15px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    body.dark .modal-content h4 {
+      color: #e0e0e0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #ddd;
+    }
+
+    body.dark .tabs {
+      border-color: #444;
+    }
+
+    .tab-button {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-button:hover {
+      color: #8B4513;
+    }
+
+    .tab-button.active {
+      color: #8B4513;
+      border-bottom-color: #8B4513;
+    }
+
+    body.dark .tab-button {
+      color: #aaa;
+    }
+
+    body.dark .tab-button:hover {
+      color: #a0642f;
+    }
+
+    body.dark .tab-button.active {
+      color: #a0642f;
+      border-bottom-color: #a0642f;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .tab-content ul {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+
+    .tab-content p {
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .piece-explanation {
+      margin-bottom: 25px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border-left: 4px solid #8B4513;
+    }
+
+    body.dark .piece-explanation {
+      background: #333;
+      border-color: #a0642f;
+    }
+
+    .piece-diagram {
+      margin: 10px 0;
+    }
+
+    .mini-board {
+      width: 150px;
+      height: 150px;
+      border: 2px solid #8B4513;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -258,28 +481,205 @@
       </div>
 
       <div class="section">
-        <h2>AI Settings</h2>
-        <div class="input-group">
-          <label for="depth">Search Depth:</label>
-          <input type="number" id="depth" value="12" min="1" max="20">
+        <h2>AI 난이도</h2>
+        <div class="difficulty-group">
+          <label class="difficulty-option">
+            <input type="radio" name="difficulty" value="easy">
+            <span>쉬움</span>
+          </label>
+          <label class="difficulty-option">
+            <input type="radio" name="difficulty" value="hard" checked>
+            <span>어려움</span>
+          </label>
         </div>
-        <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">
-          Using Fairy-Stockfish NNUE engine
+        <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">
+          쉬움: 기본 AI | 어려움: Fairy-Stockfish
         </p>
       </div>
 
       <div class="section">
-        <h2>How to Play</h2>
-        <p style="font-size: 0.9rem; line-height: 1.6;">
-          <strong>Goal:</strong> Checkmate the opponent's King<br><br>
-          <strong>Special Rules:</strong><br>
-          • Pawns promote to Generals at the far rank<br>
-          • No castling, no en passant<br>
-          • Unique piece movements (see README)
-        </p>
+        <a href="#" class="rules-link" onclick="openRulesModal(); return false;">규칙 설명</a>
       </div>
     </div>
   </main>
+
+  <!-- Rules Modal -->
+  <div id="rulesModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeRulesModal()">&times;</span>
+      <h2>NoaChess 규칙</h2>
+
+      <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('basic')">기본 규칙</button>
+        <button class="tab-button" onclick="switchTab('pieces')">기물 행마법</button>
+        <button class="tab-button" onclick="switchTab('special')">특수 규칙</button>
+      </div>
+
+      <div id="basic-tab" class="tab-content active">
+        <h3>승리 조건</h3>
+        <p>상대방의 킹을 체크메이트하면 승리합니다.</p>
+
+        <h3>기본 규칙</h3>
+        <ul>
+          <li>6×6 보드에서 진행됩니다</li>
+          <li>백이 먼저 시작합니다</li>
+          <li>폰은 마지막 랭크에 도달하면 자동으로 장군으로 승급됩니다
+            <ul>
+              <li>백 폰: 6랭크 도달 시 승급</li>
+              <li>흑 폰: 1랭크 도달 시 승급</li>
+            </ul>
+          </li>
+          <li>스테일메이트(교착 상태)는 패배로 처리됩니다</li>
+        </ul>
+      </div>
+
+      <div id="pieces-tab" class="tab-content">
+        <h3>기물별 행마법</h3>
+
+        <div class="piece-explanation">
+          <h4>♟ 폰 (Pawn)</h4>
+          <div class="piece-diagram">
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <circle cx="2.5" cy="1.5" r="0.15" fill="red" opacity="0.6"/><circle cx="1.5" cy="1.5" r="0.15" fill="red" opacity="0.6"/><circle cx="3.5" cy="1.5" r="0.15" fill="red" opacity="0.6"/>
+              <circle cx="2.5" cy="1.5" r="0.12" fill="blue" opacity="0.6"/><circle cx="1.5" cy="2.5" r="0.12" fill="blue" opacity="0.6"/><circle cx="3.5" cy="2.5" r="0.12" fill="blue" opacity="0.6"/>
+            </svg>
+          </div>
+          <p><strong>이동:</strong> 앞으로 1칸 또는 좌우로 1칸 (빨간점)</p>
+          <p><strong>공격:</strong> 대각선 앞으로 1칸 (파란점)</p>
+          <p><em>Betza: fsmWfcF</em></p>
+        </div>
+
+        <div class="piece-explanation">
+          <h4>♝ 비숍 (Bishop)</h4>
+          <div class="piece-diagram">
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <circle cx="1.5" cy="1.5" r="0.15" fill="purple" opacity="0.6"/><circle cx="3.5" cy="1.5" r="0.15" fill="purple" opacity="0.6"/><circle cx="1.5" cy="3.5" r="0.15" fill="purple" opacity="0.6"/><circle cx="3.5" cy="3.5" r="0.15" fill="purple" opacity="0.6"/>
+              <circle cx="0.5" cy="0.5" r="0.12" fill="green" opacity="0.6"/><circle cx="4.5" cy="0.5" r="0.12" fill="green" opacity="0.6"/><circle cx="0.5" cy="4.5" r="0.12" fill="green" opacity="0.6"/><circle cx="4.5" cy="4.5" r="0.12" fill="green" opacity="0.6"/>
+            </svg>
+          </div>
+          <p><strong>이동/공격:</strong> 대각선 1칸 (보라점) 또는 직선 2칸 점프 (초록점)</p>
+          <p><em>Betza: FD</em></p>
+        </div>
+
+        <div class="piece-explanation">
+          <h4>♜ 룩 (Rook)</h4>
+          <div class="piece-diagram">
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <circle cx="2.5" cy="1.5" r="0.15" fill="orange" opacity="0.6"/><circle cx="2.5" cy="0.5" r="0.12" fill="orange" opacity="0.6"/>
+              <circle cx="2.5" cy="3.5" r="0.15" fill="orange" opacity="0.6"/><circle cx="2.5" cy="4.5" r="0.12" fill="orange" opacity="0.6"/>
+              <circle cx="1.5" cy="2.5" r="0.15" fill="orange" opacity="0.6"/><circle cx="0.5" cy="2.5" r="0.12" fill="orange" opacity="0.6"/>
+              <circle cx="3.5" cy="2.5" r="0.15" fill="orange" opacity="0.6"/><circle cx="4.5" cy="2.5" r="0.12" fill="orange" opacity="0.6"/>
+            </svg>
+          </div>
+          <p><strong>이동/공격:</strong> 상하좌우 최대 4칸 (주황점)</p>
+          <p><em>Betza: mR4cR4</em></p>
+        </div>
+
+        <div class="piece-explanation">
+          <h4>♛ 퀸 (Queen)</h4>
+          <div class="piece-diagram">
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <circle cx="2.5" cy="1.5" r="0.12" fill="gold" opacity="0.7"/><circle cx="1.5" cy="1.5" r="0.12" fill="gold" opacity="0.7"/><circle cx="3.5" cy="1.5" r="0.12" fill="gold" opacity="0.7"/>
+              <circle cx="2.5" cy="3.5" r="0.12" fill="gold" opacity="0.7"/><circle cx="1.5" cy="3.5" r="0.12" fill="gold" opacity="0.7"/><circle cx="3.5" cy="3.5" r="0.12" fill="gold" opacity="0.7"/>
+              <circle cx="1.5" cy="2.5" r="0.12" fill="gold" opacity="0.7"/><circle cx="3.5" cy="2.5" r="0.12" fill="gold" opacity="0.7"/>
+            </svg>
+          </div>
+          <p><strong>이동/공격:</strong> 8방향 최대 4칸 (금색점)</p>
+          <p><em>Betza: mQ4cQ4</em></p>
+        </div>
+
+        <div class="piece-explanation">
+          <h4>♞ 나이트 (Knight)</h4>
+          <div class="piece-diagram">
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <circle cx="1.5" cy="0.5" r="0.12" fill="brown" opacity="0.7"/><circle cx="3.5" cy="0.5" r="0.12" fill="brown" opacity="0.7"/>
+              <circle cx="0.5" cy="1.5" r="0.12" fill="brown" opacity="0.7"/><circle cx="4.5" cy="1.5" r="0.12" fill="brown" opacity="0.7"/>
+              <circle cx="0.5" cy="3.5" r="0.12" fill="brown" opacity="0.7"/><circle cx="4.5" cy="3.5" r="0.12" fill="brown" opacity="0.7"/>
+              <circle cx="1.5" cy="4.5" r="0.12" fill="brown" opacity="0.7"/><circle cx="3.5" cy="4.5" r="0.12" fill="brown" opacity="0.7"/>
+            </svg>
+          </div>
+          <p><strong>이동/공격:</strong> 표준 나이트 이동 (L자 형태, 갈색점)</p>
+          <p><em>Betza: N</em></p>
+        </div>
+
+        <div class="piece-explanation">
+          <h4>⚔ 리퍼 (Leaper)</h4>
+          <div class="piece-diagram">
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <circle cx="2.5" cy="1.5" r="0.12" fill="red" opacity="0.6"/><circle cx="1.5" cy="1.5" r="0.12" fill="red" opacity="0.6"/><circle cx="3.5" cy="1.5" r="0.12" fill="red" opacity="0.6"/>
+              <circle cx="2.5" cy="3.5" r="0.12" fill="red" opacity="0.6"/><circle cx="1.5" cy="3.5" r="0.12" fill="red" opacity="0.6"/><circle cx="3.5" cy="3.5" r="0.12" fill="red" opacity="0.6"/>
+              <circle cx="1.5" cy="2.5" r="0.12" fill="red" opacity="0.6"/><circle cx="3.5" cy="2.5" r="0.12" fill="red" opacity="0.6"/>
+              <circle cx="2.5" cy="0.5" r="0.1" fill="blue" opacity="0.5"/><circle cx="0.5" cy="0.5" r="0.1" fill="blue" opacity="0.5"/><circle cx="4.5" cy="0.5" r="0.1" fill="blue" opacity="0.5"/>
+              <circle cx="2.5" cy="4.5" r="0.1" fill="blue" opacity="0.5"/><circle cx="0.5" cy="4.5" r="0.1" fill="blue" opacity="0.5"/><circle cx="4.5" cy="4.5" r="0.1" fill="blue" opacity="0.5"/>
+              <circle cx="0.5" cy="2.5" r="0.1" fill="blue" opacity="0.5"/><circle cx="4.5" cy="2.5" r="0.1" fill="blue" opacity="0.5"/>
+            </svg>
+          </div>
+          <p><strong>이동:</strong> 8방향 1칸 (빨간점)</p>
+          <p><strong>공격:</strong> 8방향 1칸 + 8방향 2칸 점프 (파란점)</p>
+          <p><em>Betza: mWmFcWcFcAcD</em></p>
+        </div>
+
+        <div class="piece-explanation">
+          <h4>♚ 킹 (King)</h4>
+          <div class="piece-diagram">
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.35" fill="darkred" opacity="0.9"/>
+              <circle cx="2.5" cy="1.5" r="0.15" fill="yellow" opacity="0.8"/><circle cx="1.5" cy="1.5" r="0.15" fill="yellow" opacity="0.8"/><circle cx="3.5" cy="1.5" r="0.15" fill="yellow" opacity="0.8"/>
+              <circle cx="2.5" cy="3.5" r="0.15" fill="yellow" opacity="0.8"/><circle cx="1.5" cy="3.5" r="0.15" fill="yellow" opacity="0.8"/><circle cx="3.5" cy="3.5" r="0.15" fill="yellow" opacity="0.8"/>
+              <circle cx="1.5" cy="2.5" r="0.15" fill="yellow" opacity="0.8"/><circle cx="3.5" cy="2.5" r="0.15" fill="yellow" opacity="0.8"/>
+            </svg>
+          </div>
+          <p><strong>이동/공격:</strong> 8방향 1칸 (노란점) - 왕족 기물</p>
+          <p><em>Betza: K</em></p>
+        </div>
+
+        <div class="piece-explanation">
+          <h4>👑 장군 (General)</h4>
+          <div class="piece-diagram">
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <path d="M 2.3 2.2 L 2.5 2.0 L 2.7 2.2 L 2.65 2.4 L 2.35 2.4 Z" fill="gold" opacity="0.9"/>
+              <circle cx="2.5" cy="1.5" r="0.12" fill="cyan" opacity="0.7"/><circle cx="1.5" cy="1.5" r="0.12" fill="cyan" opacity="0.7"/><circle cx="3.5" cy="1.5" r="0.12" fill="cyan" opacity="0.7"/>
+              <circle cx="2.5" cy="3.5" r="0.12" fill="cyan" opacity="0.7"/><circle cx="1.5" cy="3.5" r="0.12" fill="cyan" opacity="0.7"/><circle cx="3.5" cy="3.5" r="0.12" fill="cyan" opacity="0.7"/>
+              <circle cx="1.5" cy="2.5" r="0.12" fill="cyan" opacity="0.7"/><circle cx="3.5" cy="2.5" r="0.12" fill="cyan" opacity="0.7"/>
+            </svg>
+          </div>
+          <p><strong>이동/공격:</strong> 8방향 1칸 (하늘색점) - 폰이 승급한 기물</p>
+          <p><em>Betza: WF (킹과 같지만 왕족이 아님)</em></p>
+        </div>
+      </div>
+
+      <div id="special-tab" class="tab-content">
+        <h3>불가능한 특수 규칙</h3>
+        <ul>
+          <li><strong>폰 첫 수 2칸 전진:</strong> 불가능. 폰은 항상 1칸만 이동 가능</li>
+          <li><strong>앙파상 (En Passant):</strong> 불가능</li>
+          <li><strong>캐슬링 (Castling):</strong> 불가능</li>
+        </ul>
+
+        <h3>기타 규칙</h3>
+        <ul>
+          <li>폰 승급은 자동으로 이루어지며, 선택할 수 없습니다</li>
+          <li>승급 기물은 항상 장군(General)입니다</li>
+          <li>교착 상태(Stalemate)는 패배로 처리됩니다</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
   <script src="stockfish.js"></script>
   <script src="bundle.js"></script>
@@ -288,6 +688,38 @@
       document.body.classList.toggle('dark');
       const btn = document.querySelector('.theme-toggle');
       btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+
+    function openRulesModal() {
+      document.getElementById('rulesModal').style.display = 'block';
+    }
+
+    function closeRulesModal() {
+      document.getElementById('rulesModal').style.display = 'none';
+    }
+
+    function switchTab(tabName) {
+      // Hide all tabs
+      const tabs = document.querySelectorAll('.tab-content');
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      // Remove active from all buttons
+      const buttons = document.querySelectorAll('.tab-button');
+      buttons.forEach(btn => btn.classList.remove('active'));
+
+      // Show selected tab
+      document.getElementById(tabName + '-tab').classList.add('active');
+
+      // Highlight active button
+      event.target.classList.add('active');
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('rulesModal');
+      if (event.target === modal) {
+        closeRulesModal();
+      }
     }
   </script>
 </body>

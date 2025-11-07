@@ -227,6 +227,9 @@ function shouldAIMove() {
   const playBlack = document.getElementById('playBlack').checked;
   const isWhiteTurn = game.turn();
 
+  // If both unchecked, AI plays both sides
+  if (!playWhite && !playBlack) return true;
+
   return (isWhiteTurn && !playWhite) || (!isWhiteTurn && !playBlack);
 }
 
@@ -235,8 +238,16 @@ function makeAIMove() {
 
   updateStatus('AI thinking...');
 
+  const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+
+  // Use minimax for easy mode, Stockfish for hard mode
+  if (difficulty === 'easy') {
+    makeMinimaxMove();
+    return;
+  }
+
   if (stockfishReady && stockfishEngine) {
-    const depth = parseInt(document.getElementById('depth').value) || 12;
+    const depth = 12;
     let bestMove = null;
 
     // Temporary listener for this search
@@ -259,6 +270,11 @@ function makeAIMove() {
           });
 
           updateGameStatus();
+
+          // Continue AI vs AI if both unchecked
+          if (shouldAIMove()) {
+            setTimeout(makeAIMove, 300);
+          }
         }
 
         // Remove this listener after getting bestmove
@@ -320,6 +336,117 @@ function makeFallbackMove() {
 
     updateGameStatus();
   }, 300);
+}
+
+// Simple minimax AI for easy mode
+function makeMinimaxMove() {
+  setTimeout(() => {
+    const bestMove = findBestMove(4); // depth 4
+
+    if (bestMove) {
+      game.push(bestMove);
+
+      chessground.set({
+        fen: game.fen(),
+        turnColor: game.turn() ? 'white' : 'black',
+        movable: {
+          color: getMovableColor(),
+          dests: getLegalMoves()
+        },
+        lastMove: [bestMove.slice(0, 2), bestMove.slice(2, 4)]
+      });
+
+      updateGameStatus();
+
+      // Continue AI vs AI if both unchecked
+      if (shouldAIMove()) {
+        setTimeout(makeAIMove, 300);
+      }
+    }
+  }, 100);
+}
+
+function findBestMove(depth) {
+  const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
+  if (moves.length === 0) return null;
+
+  let bestMove = null;
+  let bestScore = -Infinity;
+  const isMaximizing = game.turn(); // true = white, false = black
+
+  for (const move of moves) {
+    game.push(move);
+    const score = minimax(depth - 1, -Infinity, Infinity, !isMaximizing);
+    game.pop();
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = move;
+    }
+  }
+
+  return bestMove;
+}
+
+function minimax(depth, alpha, beta, isMaximizing) {
+  if (depth === 0 || game.isGameOver()) {
+    return evaluatePosition();
+  }
+
+  const moves = game.legalMoves().split(' ').filter(m => m.length >= 4);
+
+  if (isMaximizing) {
+    let maxScore = -Infinity;
+    for (const move of moves) {
+      game.push(move);
+      const score = minimax(depth - 1, alpha, beta, false);
+      game.pop();
+      maxScore = Math.max(maxScore, score);
+      alpha = Math.max(alpha, score);
+      if (beta <= alpha) break; // Alpha-beta pruning
+    }
+    return maxScore;
+  } else {
+    let minScore = Infinity;
+    for (const move of moves) {
+      game.push(move);
+      const score = minimax(depth - 1, alpha, beta, true);
+      game.pop();
+      minScore = Math.min(minScore, score);
+      beta = Math.min(beta, score);
+      if (beta <= alpha) break; // Alpha-beta pruning
+    }
+    return minScore;
+  }
+}
+
+function evaluatePosition() {
+  if (game.isGameOver()) {
+    const result = game.result();
+    if (result.includes('1-0')) return 10000; // White wins
+    if (result.includes('0-1')) return -10000; // Black wins
+    return 0; // Draw
+  }
+
+  // Simple material evaluation
+  const pieceValues = {
+    'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'l': 350, 'g': 150, 'k': 0
+  };
+
+  const fen = game.fen();
+  let score = 0;
+
+  for (const char of fen) {
+    if (pieceValues[char.toLowerCase()]) {
+      const value = pieceValues[char.toLowerCase()];
+      score += char === char.toUpperCase() ? value : -value;
+    }
+  }
+
+  // Small random factor to avoid repetition
+  score += Math.random() * 10 - 5;
+
+  return score;
 }
 
 function updateGameStatus() {
