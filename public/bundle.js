@@ -9403,8 +9403,14 @@ function initStockfishEngine() {
     return;
   }
 
-  // Initialize Stockfish WASM
-  Stockfish().then(sf => {
+  // Initialize Stockfish WASM with proper configuration
+  Stockfish({
+    locateFile: function (path) {
+      // Ensure worker files are located in the correct path
+      console.log('Locating file:', path);
+      return '/' + path;
+    }
+  }).then(sf => {
     stockfishEngine = sf;
     console.log('Fairy-Stockfish engine initialized');
 
