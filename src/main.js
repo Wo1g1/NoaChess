@@ -644,6 +644,7 @@ function updateStatsDisplay() {
 
   if (autoPlayGames.length === 0) {
     statsEl.innerHTML = '<p>No games played yet.</p>';
+    updateWinrateGraph(0, 0, 0);
     return;
   }
 
@@ -657,6 +658,44 @@ function updateStatsDisplay() {
     <p><strong>Black wins:</strong> ${blackWins} (${(blackWins/autoPlayGames.length*100).toFixed(1)}%)</p>
     <p><strong>Draws:</strong> ${draws} (${(draws/autoPlayGames.length*100).toFixed(1)}%)</p>
   `;
+
+  // Update winrate graph
+  updateWinrateGraph(whiteWins, blackWins, draws);
+}
+
+function updateWinrateGraph(whiteWins, blackWins, draws) {
+  const total = whiteWins + blackWins + draws;
+
+  if (total === 0) {
+    // Reset graph
+    document.getElementById('graphBlack').style.height = '0%';
+    document.getElementById('graphDraw').style.height = '0%';
+    document.getElementById('graphDraw').style.top = '50%';
+    document.getElementById('graphWhite').style.height = '0%';
+    document.getElementById('blackPercent').textContent = '';
+    document.getElementById('drawPercent').textContent = '';
+    document.getElementById('whitePercent').textContent = '';
+    return;
+  }
+
+  const blackPercent = (blackWins / total) * 100;
+  const drawPercent = (draws / total) * 100;
+  const whitePercent = (whiteWins / total) * 100;
+
+  // Update bar heights and positions
+  const graphBlack = document.getElementById('graphBlack');
+  const graphDraw = document.getElementById('graphDraw');
+  const graphWhite = document.getElementById('graphWhite');
+
+  graphBlack.style.height = blackPercent + '%';
+  graphDraw.style.height = drawPercent + '%';
+  graphDraw.style.top = blackPercent + '%';
+  graphWhite.style.height = whitePercent + '%';
+
+  // Update percentages text
+  document.getElementById('blackPercent').textContent = blackPercent >= 10 ? blackPercent.toFixed(0) + '%' : '';
+  document.getElementById('drawPercent').textContent = drawPercent >= 5 ? drawPercent.toFixed(0) + '%' : '';
+  document.getElementById('whitePercent').textContent = whitePercent >= 10 ? whitePercent.toFixed(0) + '%' : '';
 }
 
 // Global functions for HTML buttons
