@@ -4,7 +4,7 @@ A 6×6 chess variant with unique piece movements, powered by Fairy-Stockfish NNU
 
 ## Play Online
 
-🎮 **Live Demo**: https://cbf09ea0.noachess.pages.dev/
+🎮 **Live Demo**: https://noachess.pages.dev/
 
 > **Note**: This project requires Cloudflare Pages or Netlify for proper deployment due to SharedArrayBuffer security requirements. Vercel's static hosting does not support the necessary COOP/COEP headers.
 
