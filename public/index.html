@@ -498,6 +498,20 @@
       </div>
 
       <div class="section">
+        <h2>AI 자가 대국</h2>
+        <div class="input-group">
+          <label for="autoPlayCount">대국 수:</label>
+          <input type="number" id="autoPlayCount" value="10" min="1" max="1000">
+        </div>
+        <button class="btn" id="startAutoPlay" onclick="startAutoPlay()">시작</button>
+        <button class="btn" id="stopAutoPlay" onclick="stopAutoPlay()" disabled>중지</button>
+        <button class="btn" id="downloadGames" onclick="downloadGames()" disabled>다운로드</button>
+        <div id="autoPlayStats" style="margin-top: 15px; font-size: 0.9rem;">
+          <p>No games played yet.</p>
+        </div>
+      </div>
+
+      <div class="section">
         <a href="#" class="rules-link" onclick="openRulesModal(); return false;">규칙 설명</a>
       </div>
     </div>

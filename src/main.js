@@ -12,6 +12,13 @@ let stockfishEngine = null;
 let stockfishReady = false;
 let variantsIni = '';
 
+// Auto-play system
+let autoPlayMode = false;
+let autoPlayGames = [];
+let autoPlayCount = 0;
+let autoPlayTarget = 0;
+let currentGameMoves = [];
+
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
   console.log('Initializing Stockfish...');
@@ -203,6 +210,7 @@ function onMove(from, to) {
   if (actualMove && legalMoves.includes(actualMove)) {
     console.log('Executing move:', actualMove);
     game.push(actualMove);
+    currentGameMoves.push(actualMove); // Record move
 
     const turnColor = game.turn() ? 'white' : 'black';
     const movableColor = getMovableColor();
@@ -267,6 +275,7 @@ function makeAIMove() {
 
         if (bestMove && bestMove !== '(none)') {
           game.push(bestMove);
+          currentGameMoves.push(bestMove); // Record move
 
           chessground.set({
             fen: game.fen(),
@@ -332,6 +341,7 @@ function makeFallbackMove() {
     }
 
     game.push(selectedMove);
+    currentGameMoves.push(selectedMove); // Record move
 
     chessground.set({
       fen: game.fen(),
@@ -354,6 +364,7 @@ function makeMinimaxMove() {
 
     if (bestMove) {
       game.push(bestMove);
+      currentGameMoves.push(bestMove); // Record move
 
       chessground.set({
         fen: game.fen(),
@@ -461,10 +472,13 @@ function evaluatePosition() {
 function updateGameStatus() {
   if (game.isGameOver()) {
     const result = game.result();
+    let winner = 'draw';
     if (result.includes('1-0')) {
       updateStatus('White wins!');
+      winner = 'white';
     } else if (result.includes('0-1')) {
       updateStatus('Black wins!');
+      winner = 'black';
     } else {
       updateStatus('Draw');
     }
@@ -472,6 +486,21 @@ function updateGameStatus() {
     chessground.set({
       movable: { dests: new Map() }
     });
+
+    // Save game record
+    saveGameRecord(winner);
+
+    // Auto-play next game if enabled
+    if (autoPlayMode && autoPlayCount < autoPlayTarget) {
+      setTimeout(() => {
+        newGame();
+        setTimeout(makeAIMove, 500);
+      }, 1000);
+    } else if (autoPlayMode && autoPlayCount >= autoPlayTarget) {
+      autoPlayMode = false;
+      updateStatus(`Auto-play complete! ${autoPlayCount} games finished.`);
+      updateAutoPlayUI();
+    }
   } else {
     const turn = game.turn() ? 'White' : 'Black';
     const inCheck = game.isCheck() ? ' (in check!)' : '';
@@ -483,9 +512,157 @@ function updateStatus(message) {
   document.getElementById('status').textContent = message;
 }
 
+// Save game record
+function saveGameRecord(winner) {
+  const gameRecord = {
+    id: autoPlayGames.length + 1,
+    timestamp: new Date().toISOString(),
+    moves: [...currentGameMoves],
+    moveCount: currentGameMoves.length,
+    winner: winner,
+    opening: currentGameMoves.slice(0, Math.min(6, currentGameMoves.length)).join(' ')
+  };
+
+  autoPlayGames.push(gameRecord);
+  autoPlayCount++;
+
+  console.log(`Game ${autoPlayCount} saved:`, gameRecord);
+
+  // Update UI
+  if (autoPlayMode) {
+    updateStatus(`Game ${autoPlayCount}/${autoPlayTarget} - ${winner} wins`);
+  }
+
+  // Update stats display
+  updateStatsDisplay();
+}
+
+// Auto-play functions
+window.startAutoPlay = function() {
+  const numGames = parseInt(document.getElementById('autoPlayCount').value) || 10;
+  autoPlayTarget = numGames;
+  autoPlayMode = true;
+  autoPlayGames = [];
+  autoPlayCount = 0;
+
+  // Force AI vs AI mode
+  document.getElementById('playWhite').checked = false;
+  document.getElementById('playBlack').checked = false;
+
+  updateAutoPlayUI();
+  updateStatus(`Starting auto-play: ${numGames} games...`);
+
+  // Start first game
+  newGame();
+  setTimeout(makeAIMove, 500);
+}
+
+window.stopAutoPlay = function() {
+  autoPlayMode = false;
+  updateAutoPlayUI();
+  updateStatus(`Auto-play stopped. ${autoPlayCount} games completed.`);
+}
+
+function updateAutoPlayUI() {
+  const startBtn = document.getElementById('startAutoPlay');
+  const stopBtn = document.getElementById('stopAutoPlay');
+  const downloadBtn = document.getElementById('downloadGames');
+
+  if (startBtn && stopBtn) {
+    startBtn.disabled = autoPlayMode;
+    stopBtn.disabled = !autoPlayMode;
+  }
+
+  if (downloadBtn) {
+    downloadBtn.disabled = autoPlayGames.length === 0;
+  }
+}
+
+window.downloadGames = function() {
+  if (autoPlayGames.length === 0) {
+    alert('No games to download!');
+    return;
+  }
+
+  // Calculate statistics
+  const stats = calculateOpeningStats();
+
+  const data = {
+    totalGames: autoPlayGames.length,
+    statistics: stats,
+    games: autoPlayGames
+  };
+
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `noachess-games-${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  updateStatus(`Downloaded ${autoPlayGames.length} games!`);
+}
+
+function calculateOpeningStats() {
+  const openingCounts = {};
+  const openingWins = {};
+
+  autoPlayGames.forEach(game => {
+    const opening = game.opening;
+    if (!openingCounts[opening]) {
+      openingCounts[opening] = 0;
+      openingWins[opening] = { white: 0, black: 0, draw: 0 };
+    }
+    openingCounts[opening]++;
+    openingWins[opening][game.winner]++;
+  });
+
+  const stats = [];
+  for (const opening in openingCounts) {
+    stats.push({
+      opening: opening,
+      count: openingCounts[opening],
+      whiteWins: openingWins[opening].white,
+      blackWins: openingWins[opening].black,
+      draws: openingWins[opening].draw
+    });
+  }
+
+  // Sort by count
+  stats.sort((a, b) => b.count - a.count);
+
+  return stats;
+}
+
+function updateStatsDisplay() {
+  const statsEl = document.getElementById('autoPlayStats');
+  if (!statsEl) return;
+
+  if (autoPlayGames.length === 0) {
+    statsEl.innerHTML = '<p>No games played yet.</p>';
+    return;
+  }
+
+  const whiteWins = autoPlayGames.filter(g => g.winner === 'white').length;
+  const blackWins = autoPlayGames.filter(g => g.winner === 'black').length;
+  const draws = autoPlayGames.filter(g => g.winner === 'draw').length;
+
+  statsEl.innerHTML = `
+    <p><strong>Games played:</strong> ${autoPlayGames.length}</p>
+    <p><strong>White wins:</strong> ${whiteWins} (${(whiteWins/autoPlayGames.length*100).toFixed(1)}%)</p>
+    <p><strong>Black wins:</strong> ${blackWins} (${(blackWins/autoPlayGames.length*100).toFixed(1)}%)</p>
+    <p><strong>Draws:</strong> ${draws} (${(draws/autoPlayGames.length*100).toFixed(1)}%)</p>
+  `;
+}
+
 // Global functions for HTML buttons
 window.newGame = function() {
   if (game) game.delete();
+  currentGameMoves = []; // Reset move record
   initGame();
 }
 
