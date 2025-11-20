@@ -18,6 +18,7 @@ let autoPlayGames = [];
 let autoPlayCount = 0;
 let autoPlayTarget = 0;
 let currentGameMoves = [];
+let currentEvaluation = 0; // Current position evaluation in centipawns
 
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
@@ -226,6 +227,9 @@ function onMove(from, to) {
 
     updateGameStatus();
 
+    // Request evaluation update after user move
+    requestEvaluation();
+
     // AI move
     if (shouldAIMove()) {
       setTimeout(makeAIMove, 300);
@@ -269,6 +273,22 @@ function makeAIMove() {
 
     // Temporary listener for this search
     const searchListener = (line) => {
+      // Parse evaluation from info lines
+      if (line.startsWith('info') && line.includes('score')) {
+        const cpMatch = line.match(/score cp (-?\d+)/);
+        const mateMatch = line.match(/score mate (-?\d+)/);
+
+        if (cpMatch) {
+          currentEvaluation = parseInt(cpMatch[1]);
+          updateEvaluationGraph(currentEvaluation);
+        } else if (mateMatch) {
+          const mateIn = parseInt(mateMatch[1]);
+          // Set extreme values for mate
+          currentEvaluation = mateIn > 0 ? 10000 : -10000;
+          updateEvaluationGraph(currentEvaluation);
+        }
+      }
+
       if (line.startsWith('bestmove')) {
         const parts = line.split(' ');
         bestMove = parts[1];
@@ -377,6 +397,10 @@ function makeMinimaxMove() {
       });
 
       updateGameStatus();
+
+      // Update evaluation graph with minimax score
+      const evalScore = evaluatePosition();
+      updateEvaluationGraph(evalScore);
 
       // Continue AI vs AI if both unchecked
       if (shouldAIMove()) {
@@ -663,18 +687,77 @@ function updateStatsDisplay() {
   updateWinrateGraph(whiteWins, blackWins, draws);
 }
 
+function requestEvaluation() {
+  if (!stockfishReady || !stockfishEngine) return;
+
+  // Quick evaluation at depth 8 for responsiveness
+  const evalListener = (line) => {
+    if (line.startsWith('info') && line.includes('score')) {
+      const cpMatch = line.match(/score cp (-?\d+)/);
+      const mateMatch = line.match(/score mate (-?\d+)/);
+
+      if (cpMatch) {
+        currentEvaluation = parseInt(cpMatch[1]);
+        updateEvaluationGraph(currentEvaluation);
+      } else if (mateMatch) {
+        const mateIn = parseInt(mateMatch[1]);
+        currentEvaluation = mateIn > 0 ? 10000 : -10000;
+        updateEvaluationGraph(currentEvaluation);
+      }
+    }
+
+    if (line.startsWith('bestmove')) {
+      stockfishEngine.removeMessageListener(evalListener);
+    }
+  };
+
+  stockfishEngine.addMessageListener(evalListener);
+  stockfishEngine.postMessage('position fen ' + game.fen());
+  stockfishEngine.postMessage('go depth 8');
+}
+
+function updateEvaluationGraph(evalCp) {
+  // Convert centipawns to percentage (500cp = 100% advantage)
+  const maxCp = 500;
+  let percent = Math.min(Math.max(evalCp / maxCp * 50, -50), 50);
+
+  // Calculate bar heights
+  // 50% = center (equal position)
+  // > 50% = white advantage (white bar grows from bottom)
+  // < 50% = black advantage (black bar grows from top)
+
+  const whiteHeight = 50 + percent; // 0-100%
+  const blackHeight = 50 - percent; // 0-100%
+
+  const graphBlack = document.getElementById('graphBlack');
+  const graphWhite = document.getElementById('graphWhite');
+  const graphDraw = document.getElementById('graphDraw');
+
+  graphBlack.style.height = blackHeight + '%';
+  graphWhite.style.height = whiteHeight + '%';
+  graphDraw.style.height = '0%';
+
+  // Update evaluation text
+  const evalText = (evalCp / 100).toFixed(1);
+  if (evalCp > 0) {
+    document.getElementById('whitePercent').textContent = '+' + evalText;
+    document.getElementById('blackPercent').textContent = '';
+  } else if (evalCp < 0) {
+    document.getElementById('blackPercent').textContent = evalText;
+    document.getElementById('whitePercent').textContent = '';
+  } else {
+    document.getElementById('whitePercent').textContent = '0.0';
+    document.getElementById('blackPercent').textContent = '';
+  }
+  document.getElementById('drawPercent').textContent = '';
+}
+
 function updateWinrateGraph(whiteWins, blackWins, draws) {
   const total = whiteWins + blackWins + draws;
 
   if (total === 0) {
-    // Reset graph
-    document.getElementById('graphBlack').style.height = '0%';
-    document.getElementById('graphDraw').style.height = '0%';
-    document.getElementById('graphDraw').style.top = '50%';
-    document.getElementById('graphWhite').style.height = '0%';
-    document.getElementById('blackPercent').textContent = '';
-    document.getElementById('drawPercent').textContent = '';
-    document.getElementById('whitePercent').textContent = '';
+    // Reset graph to center
+    updateEvaluationGraph(0);
     return;
   }
 
@@ -702,6 +785,8 @@ function updateWinrateGraph(whiteWins, blackWins, draws) {
 window.newGame = function() {
   if (game) game.delete();
   currentGameMoves = []; // Reset move record
+  currentEvaluation = 0; // Reset evaluation
+  updateEvaluationGraph(0); // Reset graph to center
   initGame();
 }
 
