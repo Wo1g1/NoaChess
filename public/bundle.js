@@ -9614,23 +9614,22 @@ function makeAIMove() {
     let bestMove = null;
 
     // Temporary listener for this search
+    let finalEvaluation = 0;
     const searchListener = line => {
-      // Parse evaluation from info lines - only use final depth
+      // Parse evaluation from info lines - store final depth only
       if (line.startsWith('info') && line.includes('score')) {
         const depthMatch = line.match(/depth (\d+)/);
         const currentDepth = depthMatch ? parseInt(depthMatch[1]) : 0;
 
-        // Only update graph at final depth to avoid flickering
+        // Only store evaluation at final depth
         if (currentDepth >= depth) {
           const cpMatch = line.match(/score cp (-?\d+)/);
           const mateMatch = line.match(/score mate (-?\d+)/);
           if (cpMatch) {
-            currentEvaluation = parseInt(cpMatch[1]);
-            if (!autoPlayMode) updateEvaluationGraph(currentEvaluation);
+            finalEvaluation = parseInt(cpMatch[1]);
           } else if (mateMatch) {
             const mateIn = parseInt(mateMatch[1]);
-            currentEvaluation = mateIn > 0 ? 3000 : -3000;
-            if (!autoPlayMode) updateEvaluationGraph(currentEvaluation);
+            finalEvaluation = mateIn > 0 ? 3000 : -3000;
           }
         }
       }
@@ -9641,6 +9640,8 @@ function makeAIMove() {
           game.push(bestMove);
           currentGameMoves.push(bestMove); // Record move
 
+          // Update evaluation graph after move
+          updateEvaluationGraph(finalEvaluation);
           chessground.set({
             fen: game.fen(),
             turnColor: game.turn() ? 'white' : 'black',
@@ -9856,8 +9857,6 @@ function updateGameStatus() {
       autoPlayMode = false;
       updateStatus(`Auto-play complete! ${autoPlayCount} games finished.`);
       updateAutoPlayUI();
-      // Switch back to evaluation mode
-      updateEvaluationGraph(0);
     }
   } else {
     const turn = game.turn() ? 'White' : 'Black';
@@ -9906,9 +9905,6 @@ window.startAutoPlay = function () {
   updateAutoPlayUI();
   updateStatus(`Starting auto-play: ${numGames} games...`);
 
-  // Switch graph to winrate mode
-  updateWinrateGraph(0, 0, 0);
-
   // Start first game
   newGame();
   setTimeout(makeAIMove, 500);
@@ -9917,9 +9913,6 @@ window.stopAutoPlay = function () {
   autoPlayMode = false;
   updateAutoPlayUI();
   updateStatus(`Auto-play stopped. ${autoPlayCount} games completed.`);
-
-  // Switch back to evaluation mode
-  updateEvaluationGraph(0);
 };
 function updateAutoPlayUI() {
   const startBtn = document.getElementById('startAutoPlay');
@@ -9996,7 +9989,6 @@ function updateStatsDisplay() {
   if (!statsEl) return;
   if (autoPlayGames.length === 0) {
     statsEl.innerHTML = '<p>No games played yet.</p>';
-    if (autoPlayMode) updateWinrateGraph(0, 0, 0);
     return;
   }
   const whiteWins = autoPlayGames.filter(g => g.winner === 'white').length;
@@ -10008,14 +10000,9 @@ function updateStatsDisplay() {
     <p><strong>Black wins:</strong> ${blackWins} (${(blackWins / autoPlayGames.length * 100).toFixed(1)}%)</p>
     <p><strong>Draws:</strong> ${draws} (${(draws / autoPlayGames.length * 100).toFixed(1)}%)</p>
   `;
-
-  // Update winrate graph only in autoplay mode
-  if (autoPlayMode) {
-    updateWinrateGraph(whiteWins, blackWins, draws);
-  }
 }
 function requestEvaluation() {
-  if (!stockfishReady || !stockfishEngine || autoPlayMode) return;
+  if (!stockfishReady || !stockfishEngine) return;
   const evalDepth = 10;
   let lastEvaluation = 0;
 
