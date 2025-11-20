@@ -273,19 +273,24 @@ function makeAIMove() {
 
     // Temporary listener for this search
     const searchListener = (line) => {
-      // Parse evaluation from info lines
+      // Parse evaluation from info lines - only use final depth
       if (line.startsWith('info') && line.includes('score')) {
-        const cpMatch = line.match(/score cp (-?\d+)/);
-        const mateMatch = line.match(/score mate (-?\d+)/);
+        const depthMatch = line.match(/depth (\d+)/);
+        const currentDepth = depthMatch ? parseInt(depthMatch[1]) : 0;
 
-        if (cpMatch) {
-          currentEvaluation = parseInt(cpMatch[1]);
-          updateEvaluationGraph(currentEvaluation);
-        } else if (mateMatch) {
-          const mateIn = parseInt(mateMatch[1]);
-          // Set extreme values for mate
-          currentEvaluation = mateIn > 0 ? 10000 : -10000;
-          updateEvaluationGraph(currentEvaluation);
+        // Only update graph at final depth to avoid flickering
+        if (currentDepth >= depth) {
+          const cpMatch = line.match(/score cp (-?\d+)/);
+          const mateMatch = line.match(/score mate (-?\d+)/);
+
+          if (cpMatch) {
+            currentEvaluation = parseInt(cpMatch[1]);
+            if (!autoPlayMode) updateEvaluationGraph(currentEvaluation);
+          } else if (mateMatch) {
+            const mateIn = parseInt(mateMatch[1]);
+            currentEvaluation = mateIn > 0 ? 3000 : -3000;
+            if (!autoPlayMode) updateEvaluationGraph(currentEvaluation);
+          }
         }
       }
 
@@ -524,6 +529,8 @@ function updateGameStatus() {
       autoPlayMode = false;
       updateStatus(`Auto-play complete! ${autoPlayCount} games finished.`);
       updateAutoPlayUI();
+      // Switch back to evaluation mode
+      updateEvaluationGraph(0);
     }
   } else {
     const turn = game.turn() ? 'White' : 'Black';
@@ -576,6 +583,9 @@ window.startAutoPlay = function() {
   updateAutoPlayUI();
   updateStatus(`Starting auto-play: ${numGames} games...`);
 
+  // Switch graph to winrate mode
+  updateWinrateGraph(0, 0, 0);
+
   // Start first game
   newGame();
   setTimeout(makeAIMove, 500);
@@ -585,6 +595,9 @@ window.stopAutoPlay = function() {
   autoPlayMode = false;
   updateAutoPlayUI();
   updateStatus(`Auto-play stopped. ${autoPlayCount} games completed.`);
+
+  // Switch back to evaluation mode
+  updateEvaluationGraph(0);
 }
 
 function updateAutoPlayUI() {
@@ -668,7 +681,7 @@ function updateStatsDisplay() {
 
   if (autoPlayGames.length === 0) {
     statsEl.innerHTML = '<p>No games played yet.</p>';
-    updateWinrateGraph(0, 0, 0);
+    if (autoPlayMode) updateWinrateGraph(0, 0, 0);
     return;
   }
 
@@ -683,37 +696,48 @@ function updateStatsDisplay() {
     <p><strong>Draws:</strong> ${draws} (${(draws/autoPlayGames.length*100).toFixed(1)}%)</p>
   `;
 
-  // Update winrate graph
-  updateWinrateGraph(whiteWins, blackWins, draws);
+  // Update winrate graph only in autoplay mode
+  if (autoPlayMode) {
+    updateWinrateGraph(whiteWins, blackWins, draws);
+  }
 }
 
 function requestEvaluation() {
-  if (!stockfishReady || !stockfishEngine) return;
+  if (!stockfishReady || !stockfishEngine || autoPlayMode) return;
 
-  // Quick evaluation at depth 8 for responsiveness
+  const evalDepth = 10;
+  let lastEvaluation = 0;
+
+  // Quick evaluation at depth 10 for responsiveness
   const evalListener = (line) => {
     if (line.startsWith('info') && line.includes('score')) {
-      const cpMatch = line.match(/score cp (-?\d+)/);
-      const mateMatch = line.match(/score mate (-?\d+)/);
+      const depthMatch = line.match(/depth (\d+)/);
+      const currentDepth = depthMatch ? parseInt(depthMatch[1]) : 0;
 
-      if (cpMatch) {
-        currentEvaluation = parseInt(cpMatch[1]);
-        updateEvaluationGraph(currentEvaluation);
-      } else if (mateMatch) {
-        const mateIn = parseInt(mateMatch[1]);
-        currentEvaluation = mateIn > 0 ? 10000 : -10000;
-        updateEvaluationGraph(currentEvaluation);
+      // Only store final depth evaluation
+      if (currentDepth >= evalDepth) {
+        const cpMatch = line.match(/score cp (-?\d+)/);
+        const mateMatch = line.match(/score mate (-?\d+)/);
+
+        if (cpMatch) {
+          lastEvaluation = parseInt(cpMatch[1]);
+        } else if (mateMatch) {
+          const mateIn = parseInt(mateMatch[1]);
+          lastEvaluation = mateIn > 0 ? 3000 : -3000;
+        }
       }
     }
 
     if (line.startsWith('bestmove')) {
       stockfishEngine.removeMessageListener(evalListener);
+      // Update graph with final evaluation
+      updateEvaluationGraph(lastEvaluation);
     }
   };
 
   stockfishEngine.addMessageListener(evalListener);
   stockfishEngine.postMessage('position fen ' + game.fen());
-  stockfishEngine.postMessage('go depth 8');
+  stockfishEngine.postMessage('go depth ' + evalDepth);
 }
 
 function updateEvaluationGraph(evalCp) {
