@@ -31,6 +31,12 @@ let positionHistory = [];
 // Game ID for race condition protection
 let currentGameId = 0;
 
+// Current Stockfish listener (to remove before adding new one)
+let currentSearchListener = null;
+
+// Search sequence number to prevent stale results
+let searchSequence = 0;
+
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
   console.log('Initializing Stockfish...');
@@ -126,6 +132,13 @@ function initGame() {
   // Increment game ID to invalidate previous game's callbacks
   currentGameId++;
   console.log('Starting game ID:', currentGameId);
+
+  // Clean up any existing Stockfish listener
+  if (currentSearchListener && stockfishEngine) {
+    stockfishEngine.removeMessageListener(currentSearchListener);
+    currentSearchListener = null;
+    stockfishEngine.postMessage('stop');
+  }
 
   // Create new game
   game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
@@ -303,14 +316,30 @@ function makeAIMove() {
     let bestMove = null;
     let moveProcessed = false; // Flag to prevent duplicate processing
     const gameIdAtStart = currentGameId; // Capture game ID for race condition check
+    searchSequence++; // Increment search sequence
+    const searchSeqAtStart = searchSequence;
+    console.log(`Starting search #${searchSeqAtStart} for game #${gameIdAtStart}`);
+
+    // Remove previous listener if exists (prevent multiple active listeners)
+    if (currentSearchListener) {
+      console.log('Removing previous search listener');
+      stockfishEngine.removeMessageListener(currentSearchListener);
+      currentSearchListener = null;
+    }
 
     // Temporary listener for this search
     let finalEvaluation = 0;
 
     const searchListener = (line) => {
-      // Ignore results from previous games or if already processed
-      if (gameIdAtStart !== currentGameId || moveProcessed) {
+      // Ignore results from previous games/searches or if already processed
+      if (gameIdAtStart !== currentGameId || searchSeqAtStart !== searchSequence || moveProcessed) {
+        if (line.startsWith('bestmove')) {
+          console.log(`Ignoring stale bestmove: search #${searchSeqAtStart} (current: #${searchSequence}), game #${gameIdAtStart} (current: #${currentGameId}), processed: ${moveProcessed}`);
+        }
         stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
         return;
       }
 
@@ -337,6 +366,9 @@ function makeAIMove() {
         // Immediately mark as processed and remove listener to prevent duplicates
         moveProcessed = true;
         stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
 
         // Double check game ID before processing
         if (gameIdAtStart !== currentGameId) {
@@ -345,6 +377,7 @@ function makeAIMove() {
 
         const parts = line.split(' ');
         bestMove = parts[1];
+        console.log(`Processing bestmove ${bestMove} from search #${searchSeqAtStart}`);
 
         if (bestMove && bestMove !== '(none)') {
           const fenBefore = game.fen();
@@ -379,7 +412,12 @@ function makeAIMove() {
       }
     };
 
+    // Store and add the listener
+    currentSearchListener = searchListener;
     stockfishEngine.addMessageListener(searchListener);
+
+    // Stop any previous search before starting new one
+    stockfishEngine.postMessage('stop');
 
     // Send search command
     stockfishEngine.postMessage('position fen ' + game.fen());
@@ -387,9 +425,12 @@ function makeAIMove() {
 
     // Fallback timeout
     setTimeout(() => {
-      if (!bestMove) {
+      if (!bestMove && !moveProcessed) {
         console.log('Stockfish timeout, using fallback');
         stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
         makeFallbackMove();
       }
     }, 30000); // 30 second timeout
