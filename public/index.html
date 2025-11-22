@@ -49,93 +49,10 @@
 
     main {
       display: flex;
-      max-width: 1400px;
+      max-width: 1200px;
       margin: 30px auto;
       padding: 20px;
       gap: 30px;
-    }
-
-    .winrate-graph {
-      flex: 0 0 80px;
-      height: 600px;
-      position: relative;
-      border: 2px solid #8B4513;
-      border-radius: 8px;
-      background: #f5f5f5;
-      overflow: hidden;
-    }
-
-    body.dark .winrate-graph {
-      background: #2a2a2a;
-      border-color: #a0642f;
-    }
-
-    .graph-bar-black {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(to bottom, #333, #000);
-      transition: height 0.3s ease;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      color: white;
-      font-size: 0.8rem;
-      font-weight: bold;
-      padding-bottom: 5px;
-    }
-
-    .graph-bar-draw {
-      position: absolute;
-      left: 0;
-      right: 0;
-      background: linear-gradient(to bottom, #888, #666);
-      transition: top 0.3s ease, height 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 0.7rem;
-    }
-
-    .graph-bar-white {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(to top, #fff, #ddd);
-      transition: height 0.3s ease;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      color: #333;
-      font-size: 0.8rem;
-      font-weight: bold;
-      padding-top: 5px;
-      border-top: 1px solid #ccc;
-    }
-
-    .graph-label {
-      position: absolute;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 0.75rem;
-      color: #666;
-      font-weight: bold;
-    }
-
-    .graph-label.top {
-      top: 5px;
-    }
-
-    .graph-label.bottom {
-      bottom: 5px;
-    }
-
-    body.dark .graph-label {
-      color: #aaa;
     }
 
     .board-container {
@@ -266,10 +183,6 @@
       main {
         flex-direction: column;
         align-items: center;
-      }
-
-      .winrate-graph {
-        display: none;
       }
 
       .board-container {
@@ -537,18 +450,6 @@
   </header>
 
   <main>
-    <div class="winrate-graph" id="winrateGraph">
-      <div class="graph-bar-black" id="graphBlack">
-        <span id="blackPercent"></span>
-      </div>
-      <div class="graph-bar-draw" id="graphDraw">
-        <span id="drawPercent"></span>
-      </div>
-      <div class="graph-bar-white" id="graphWhite">
-        <span id="whitePercent"></span>
-      </div>
-    </div>
-
     <div class="board-container">
       <div id="board"></div>
     </div>
@@ -847,6 +748,7 @@
           <li>폰 승급은 자동으로 이루어지며, 선택할 수 없습니다</li>
           <li>승급 기물은 항상 장군(General)입니다</li>
           <li>교착 상태(Stalemate)는 패배로 처리됩니다</li>
+          <li><strong>3회 동형 반복:</strong> 같은 포지션이 3번 반복되면 무승부</li>
         </ul>
       </div>
     </div>

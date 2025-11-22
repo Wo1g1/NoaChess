@@ -9575,9 +9575,6 @@ function onMove(from, to) {
     });
     updateGameStatus();
 
-    // Request evaluation update after user move
-    requestEvaluation();
-
     // AI move
     if (shouldAIMove()) {
       setTimeout(makeAIMove, 300);
@@ -9640,8 +9637,6 @@ function makeAIMove() {
           game.push(bestMove);
           currentGameMoves.push(bestMove); // Record move
 
-          // Update evaluation graph after move
-          updateEvaluationGraph(finalEvaluation);
           chessground.set({
             fen: game.fen(),
             turnColor: game.turn() ? 'white' : 'black',
@@ -9734,10 +9729,6 @@ function makeMinimaxMove() {
         lastMove: [bestMove.slice(0, 2), bestMove.slice(2, 4)]
       });
       updateGameStatus();
-
-      // Update evaluation graph with minimax score
-      const evalScore = evaluatePosition();
-      updateEvaluationGraph(evalScore);
 
       // Continue AI vs AI if both unchecked
       if (shouldAIMove()) {
@@ -10099,7 +10090,6 @@ window.newGame = function () {
   if (game) game.delete();
   currentGameMoves = []; // Reset move record
   currentEvaluation = 0; // Reset evaluation
-  updateEvaluationGraph(0); // Reset graph to center
   initGame();
 };
 window.flipBoard = function () {
