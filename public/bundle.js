@@ -9483,7 +9483,8 @@ function initGame() {
   console.log('Game initialized with variant:', game.variant());
   console.log('Legal moves from start:', game.legalMoves());
 
-  // Record initial position for repetition detection
+  // Initialize position history and record initial position
+  positionHistory = [];
   recordPosition();
 
   // Initialize chessground
