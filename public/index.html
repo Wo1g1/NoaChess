@@ -55,6 +55,59 @@
       gap: 30px;
     }
 
+    .board-wrapper {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .captured-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 40px;
+      height: 600px;
+      margin-right: 8px;
+    }
+
+    .captured-pieces {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 5px 0;
+    }
+
+    #capturedTop {
+      justify-content: flex-start;
+    }
+
+    #capturedBottom {
+      justify-content: flex-end;
+    }
+
+    .captured-piece {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .captured-piece.white {
+      color: #fff;
+      text-shadow: 0 0 2px #000, 0 0 2px #000;
+    }
+
+    .captured-piece.black {
+      color: #333;
+    }
+
+    body.dark .captured-piece.white {
+      color: #eee;
+      text-shadow: 0 0 2px #000;
+    }
+
+    body.dark .captured-piece.black {
+      color: #888;
+    }
+
     .board-container {
       flex: 0 0 600px;
     }
@@ -183,6 +236,10 @@
       main {
         flex-direction: column;
         align-items: center;
+      }
+
+      .board-wrapper {
+        flex: none;
       }
 
       .board-container {
@@ -450,8 +507,14 @@
   </header>
 
   <main>
-    <div class="board-container">
-      <div id="board"></div>
+    <div class="board-wrapper">
+      <div class="captured-container">
+        <div id="capturedTop" class="captured-pieces"></div>
+        <div id="capturedBottom" class="captured-pieces"></div>
+      </div>
+      <div class="board-container">
+        <div id="board"></div>
+      </div>
     </div>
 
     <div class="controls">

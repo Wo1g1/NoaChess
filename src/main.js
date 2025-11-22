@@ -20,6 +20,11 @@ let autoPlayTarget = 0;
 let currentGameMoves = [];
 let currentEvaluation = 0; // Current position evaluation in centipawns
 
+// Captured pieces tracking
+let capturedByWhite = []; // Black pieces captured by white
+let capturedByBlack = []; // White pieces captured by white
+let boardOrientation = 'white'; // Track board orientation
+
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
   console.log('Initializing Stockfish...');
@@ -210,8 +215,14 @@ function onMove(from, to) {
   // Check if move is legal
   if (actualMove && legalMoves.includes(actualMove)) {
     console.log('Executing move:', actualMove);
+    const fenBefore = game.fen();
     game.push(actualMove);
+    const fenAfter = game.fen();
     currentGameMoves.push(actualMove); // Record move
+
+    // Detect and record capture
+    const capturedPiece = detectCapture(fenBefore, fenAfter);
+    recordCapture(capturedPiece);
 
     const turnColor = game.turn() ? 'white' : 'black';
     const movableColor = getMovableColor();
@@ -296,8 +307,14 @@ function makeAIMove() {
         bestMove = parts[1];
 
         if (bestMove && bestMove !== '(none)') {
+          const fenBefore = game.fen();
           game.push(bestMove);
+          const fenAfter = game.fen();
           currentGameMoves.push(bestMove); // Record move
+
+          // Detect and record capture
+          const capturedPiece = detectCapture(fenBefore, fenAfter);
+          recordCapture(capturedPiece);
 
           chessground.set({
             fen: game.fen(),
@@ -362,8 +379,14 @@ function makeFallbackMove() {
       selectedMove = moves[Math.floor(Math.random() * moves.length)];
     }
 
+    const fenBefore = game.fen();
     game.push(selectedMove);
+    const fenAfter = game.fen();
     currentGameMoves.push(selectedMove); // Record move
+
+    // Detect and record capture
+    const capturedPiece = detectCapture(fenBefore, fenAfter);
+    recordCapture(capturedPiece);
 
     chessground.set({
       fen: game.fen(),
@@ -385,8 +408,14 @@ function makeMinimaxMove() {
     const bestMove = findBestMove(4); // depth 4
 
     if (bestMove) {
+      const fenBefore = game.fen();
       game.push(bestMove);
+      const fenAfter = game.fen();
       currentGameMoves.push(bestMove); // Record move
+
+      // Detect and record capture
+      const capturedPiece = detectCapture(fenBefore, fenAfter);
+      recordCapture(capturedPiece);
 
       chessground.set({
         fen: game.fen(),
@@ -789,11 +818,114 @@ window.newGame = function() {
   if (game) game.delete();
   currentGameMoves = []; // Reset move record
   currentEvaluation = 0; // Reset evaluation
+  resetCapturedPieces(); // Reset captured pieces
   initGame();
 }
 
 window.flipBoard = function() {
   chessground.toggleOrientation();
+  boardOrientation = boardOrientation === 'white' ? 'black' : 'white';
+  updateCapturedPiecesDisplay();
+}
+
+// Get pieces from FEN string
+function getPiecesFromFen(fen) {
+  const pieces = {};
+  const pieceTypes = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'k', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'K'];
+
+  pieceTypes.forEach(p => pieces[p] = 0);
+
+  const fenBoard = fen.split(' ')[0];
+  for (const char of fenBoard) {
+    if (pieceTypes.includes(char)) {
+      pieces[char]++;
+    }
+  }
+  return pieces;
+}
+
+// Detect captured piece by comparing FEN before and after move
+function detectCapture(fenBefore, fenAfter) {
+  const piecesBefore = getPiecesFromFen(fenBefore);
+  const piecesAfter = getPiecesFromFen(fenAfter);
+
+  // Check for missing pieces
+  const allPieces = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'P', 'N', 'B', 'R', 'Q', 'L', 'G'];
+
+  for (const piece of allPieces) {
+    if (piecesAfter[piece] < piecesBefore[piece]) {
+      return piece;
+    }
+  }
+  return null;
+}
+
+// Record a capture
+function recordCapture(capturedPiece) {
+  if (!capturedPiece) return;
+
+  // Lowercase = black piece (captured by white)
+  // Uppercase = white piece (captured by black)
+  if (capturedPiece === capturedPiece.toLowerCase()) {
+    capturedByWhite.push(capturedPiece);
+  } else {
+    capturedByBlack.push(capturedPiece.toLowerCase());
+  }
+
+  updateCapturedPiecesDisplay();
+}
+
+// Update captured pieces display
+function updateCapturedPiecesDisplay() {
+  const topContainer = document.getElementById('capturedTop');
+  const bottomContainer = document.getElementById('capturedBottom');
+
+  if (!topContainer || !bottomContainer) return;
+
+  // Sort pieces by value for display
+  const pieceOrder = { 'q': 0, 'r': 1, 'b': 2, 'l': 3, 'n': 4, 'g': 5, 'p': 6 };
+
+  const sortPieces = (arr) => [...arr].sort((a, b) => pieceOrder[a] - pieceOrder[b]);
+
+  const whiteCapturesSorted = sortPieces(capturedByWhite);
+  const blackCapturesSorted = sortPieces(capturedByBlack);
+
+  // Generate HTML for piece display
+  const generatePieceHtml = (pieces, color) => {
+    return pieces.map(p => `<span class="captured-piece ${color}">${getPieceSymbol(p, color)}</span>`).join('');
+  };
+
+  // When white is at bottom: white's captures (black pieces) at bottom, black's captures (white pieces) at top
+  // When black is at bottom: swap positions
+  if (boardOrientation === 'white') {
+    topContainer.innerHTML = generatePieceHtml(blackCapturesSorted, 'white');
+    bottomContainer.innerHTML = generatePieceHtml(whiteCapturesSorted, 'black');
+  } else {
+    topContainer.innerHTML = generatePieceHtml(whiteCapturesSorted, 'black');
+    bottomContainer.innerHTML = generatePieceHtml(blackCapturesSorted, 'white');
+  }
+}
+
+// Get chess piece unicode symbol
+function getPieceSymbol(piece, color) {
+  const symbols = {
+    'k': color === 'white' ? '♔' : '♚',
+    'q': color === 'white' ? '♕' : '♛',
+    'r': color === 'white' ? '♖' : '♜',
+    'b': color === 'white' ? '♗' : '♝',
+    'n': color === 'white' ? '♘' : '♞',
+    'p': color === 'white' ? '♙' : '♟',
+    'l': color === 'white' ? '⚔' : '⚔',  // Leaper uses dagger symbol
+    'g': color === 'white' ? '★' : '★'   // General uses star symbol
+  };
+  return symbols[piece] || piece;
+}
+
+// Reset captured pieces
+function resetCapturedPieces() {
+  capturedByWhite = [];
+  capturedByBlack = [];
+  updateCapturedPiecesDisplay();
 }
 
 window.undoMove = function() {
