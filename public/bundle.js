@@ -9389,6 +9389,9 @@ let capturedByWhite = []; // Black pieces captured by white
 let capturedByBlack = []; // White pieces captured by white
 let boardOrientation = 'white'; // Track board orientation
 
+// Position history for threefold repetition detection
+let positionHistory = [];
+
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
   console.log('Initializing Stockfish...');
@@ -9479,6 +9482,9 @@ function initGame() {
   game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
   console.log('Game initialized with variant:', game.variant());
   console.log('Legal moves from start:', game.legalMoves());
+
+  // Record initial position for repetition detection
+  recordPosition();
 
   // Initialize chessground
   const boardElement = document.getElementById('board');
@@ -9573,6 +9579,9 @@ function onMove(from, to) {
     // Detect and record capture
     const capturedPiece = detectCapture(fenBefore, fenAfter);
     recordCapture(capturedPiece);
+
+    // Record position for repetition detection
+    recordPosition();
     const turnColor = game.turn() ? 'white' : 'black';
     const movableColor = getMovableColor();
     chessground.set({
@@ -9608,10 +9617,7 @@ function shouldAIMove() {
 }
 function makeAIMove() {
   // Check for game over including repetition
-  let isRepetitionDraw = false;
-  try {
-    isRepetitionDraw = game.hasRepeated && game.hasRepeated(3);
-  } catch (e) {}
+  const isRepetitionDraw = checkThreefoldRepetition();
   if (game.isGameOver() || isRepetitionDraw) {
     updateGameStatus();
     return;
@@ -9660,6 +9666,9 @@ function makeAIMove() {
           // Detect and record capture
           const capturedPiece = detectCapture(fenBefore, fenAfter);
           recordCapture(capturedPiece);
+
+          // Record position for repetition detection
+          recordPosition();
           chessground.set({
             fen: game.fen(),
             turnColor: game.turn() ? 'white' : 'black',
@@ -9725,6 +9734,9 @@ function makeFallbackMove() {
     // Detect and record capture
     const capturedPiece = detectCapture(fenBefore, fenAfter);
     recordCapture(capturedPiece);
+
+    // Record position for repetition detection
+    recordPosition();
     chessground.set({
       fen: game.fen(),
       turnColor: game.turn() ? 'white' : 'black',
@@ -9752,6 +9764,9 @@ function makeMinimaxMove() {
       // Detect and record capture
       const capturedPiece = detectCapture(fenBefore, fenAfter);
       recordCapture(capturedPiece);
+
+      // Record position for repetition detection
+      recordPosition();
       chessground.set({
         fen: game.fen(),
         turnColor: game.turn() ? 'white' : 'black',
@@ -9849,14 +9864,35 @@ function evaluatePosition() {
   score += Math.random() * 10 - 5;
   return score;
 }
+
+// Get position key from FEN (board + turn + castling + en passant)
+function getPositionKey(fen) {
+  const parts = fen.split(' ');
+  // Include board, turn, castling rights, en passant square
+  return parts.slice(0, 4).join(' ');
+}
+
+// Check for threefold repetition
+function checkThreefoldRepetition() {
+  const currentPosition = getPositionKey(game.fen());
+  let count = 0;
+  for (const pos of positionHistory) {
+    if (pos === currentPosition) {
+      count++;
+      if (count >= 3) return true;
+    }
+  }
+  return false;
+}
+
+// Record current position to history
+function recordPosition() {
+  const posKey = getPositionKey(game.fen());
+  positionHistory.push(posKey);
+}
 function updateGameStatus() {
   // Check for threefold repetition manually
-  let isRepetitionDraw = false;
-  try {
-    isRepetitionDraw = game.hasRepeated && game.hasRepeated(3);
-  } catch (e) {
-    console.log('hasRepeated not available');
-  }
+  const isRepetitionDraw = checkThreefoldRepetition();
   if (game.isGameOver() || isRepetitionDraw) {
     const result = game.result();
     let winner = 'draw';
@@ -10133,6 +10169,7 @@ window.newGame = function () {
   if (game) game.delete();
   currentGameMoves = []; // Reset move record
   currentEvaluation = 0; // Reset evaluation
+  positionHistory = []; // Reset position history
   resetCapturedPieces(); // Reset captured pieces
   initGame();
 };
