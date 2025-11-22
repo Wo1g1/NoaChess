@@ -9641,13 +9641,14 @@ function makeAIMove() {
   if (stockfishReady && stockfishEngine) {
     const depth = 12;
     let bestMove = null;
+    let moveProcessed = false; // Flag to prevent duplicate processing
     const gameIdAtStart = currentGameId; // Capture game ID for race condition check
 
     // Temporary listener for this search
     let finalEvaluation = 0;
     const searchListener = line => {
-      // Ignore results from previous games
-      if (gameIdAtStart !== currentGameId) {
+      // Ignore results from previous games or if already processed
+      if (gameIdAtStart !== currentGameId || moveProcessed) {
         stockfishEngine.removeMessageListener(searchListener);
         return;
       }
@@ -9670,9 +9671,12 @@ function makeAIMove() {
         }
       }
       if (line.startsWith('bestmove')) {
+        // Immediately mark as processed and remove listener to prevent duplicates
+        moveProcessed = true;
+        stockfishEngine.removeMessageListener(searchListener);
+
         // Double check game ID before processing
         if (gameIdAtStart !== currentGameId) {
-          stockfishEngine.removeMessageListener(searchListener);
           return;
         }
         const parts = line.split(' ');
@@ -9705,9 +9709,6 @@ function makeAIMove() {
             setTimeout(makeAIMove, 300);
           }
         }
-
-        // Remove this listener after getting bestmove
-        stockfishEngine.removeMessageListener(searchListener);
       }
     };
     stockfishEngine.addMessageListener(searchListener);
