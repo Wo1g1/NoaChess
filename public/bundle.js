@@ -9607,7 +9607,15 @@ function shouldAIMove() {
   return isWhiteTurn && !playWhite || !isWhiteTurn && !playBlack;
 }
 function makeAIMove() {
-  if (game.isGameOver()) return;
+  // Check for game over including repetition
+  let isRepetitionDraw = false;
+  try {
+    isRepetitionDraw = game.hasRepeated && game.hasRepeated(3);
+  } catch (e) {}
+  if (game.isGameOver() || isRepetitionDraw) {
+    updateGameStatus();
+    return;
+  }
   updateStatus('AI thinking...');
   const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
 
@@ -9842,10 +9850,20 @@ function evaluatePosition() {
   return score;
 }
 function updateGameStatus() {
-  if (game.isGameOver()) {
+  // Check for threefold repetition manually
+  let isRepetitionDraw = false;
+  try {
+    isRepetitionDraw = game.hasRepeated && game.hasRepeated(3);
+  } catch (e) {
+    console.log('hasRepeated not available');
+  }
+  if (game.isGameOver() || isRepetitionDraw) {
     const result = game.result();
     let winner = 'draw';
-    if (result.includes('1-0')) {
+    if (isRepetitionDraw) {
+      updateStatus('Draw (3-fold repetition)');
+      winner = 'draw';
+    } else if (result.includes('1-0')) {
       updateStatus('White wins!');
       winner = 'white';
     } else if (result.includes('0-1')) {
