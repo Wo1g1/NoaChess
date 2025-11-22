@@ -37,6 +37,9 @@ let currentSearchListener = null;
 // Search sequence number to prevent stale results
 let searchSequence = 0;
 
+// Flag to prevent saving the same game multiple times
+let gameSaved = false;
+
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
   console.log('Initializing Stockfish...');
@@ -147,6 +150,7 @@ function initGame() {
 
   // Initialize position history and record initial position
   positionHistory = [];
+  gameSaved = false; // Reset game saved flag
   recordPosition();
 
   // Initialize chessground
@@ -663,8 +667,11 @@ function updateGameStatus() {
       movable: { dests: new Map() }
     });
 
-    // Save game record
-    saveGameRecord(winner);
+    // Save game record (only once per game)
+    if (!gameSaved) {
+      gameSaved = true;
+      saveGameRecord(winner);
+    }
 
     // Auto-play next game if enabled
     if (autoPlayMode && autoPlayCount < autoPlayTarget) {
