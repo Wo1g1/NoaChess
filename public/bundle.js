@@ -9392,6 +9392,9 @@ let boardOrientation = 'white'; // Track board orientation
 // Position history for threefold repetition detection
 let positionHistory = [];
 
+// Game ID for race condition protection
+let currentGameId = 0;
+
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
   console.log('Initializing Stockfish...');
@@ -9478,6 +9481,10 @@ function getMovableColor() {
   return 'none';
 }
 function initGame() {
+  // Increment game ID to invalidate previous game's callbacks
+  currentGameId++;
+  console.log('Starting game ID:', currentGameId);
+
   // Create new game
   game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
   console.log('Game initialized with variant:', game.variant());
@@ -9634,10 +9641,17 @@ function makeAIMove() {
   if (stockfishReady && stockfishEngine) {
     const depth = 12;
     let bestMove = null;
+    const gameIdAtStart = currentGameId; // Capture game ID for race condition check
 
     // Temporary listener for this search
     let finalEvaluation = 0;
     const searchListener = line => {
+      // Ignore results from previous games
+      if (gameIdAtStart !== currentGameId) {
+        stockfishEngine.removeMessageListener(searchListener);
+        return;
+      }
+
       // Parse evaluation from info lines - store final depth only
       if (line.startsWith('info') && line.includes('score')) {
         const depthMatch = line.match(/depth (\d+)/);
@@ -9656,6 +9670,11 @@ function makeAIMove() {
         }
       }
       if (line.startsWith('bestmove')) {
+        // Double check game ID before processing
+        if (gameIdAtStart !== currentGameId) {
+          stockfishEngine.removeMessageListener(searchListener);
+          return;
+        }
         const parts = line.split(' ');
         bestMove = parts[1];
         if (bestMove && bestMove !== '(none)') {
@@ -9889,7 +9908,13 @@ function checkThreefoldRepetition() {
 // Record current position to history
 function recordPosition() {
   const posKey = getPositionKey(game.fen());
+  // Prevent duplicate consecutive recordings (race condition protection)
+  if (positionHistory.length > 0 && positionHistory[positionHistory.length - 1] === posKey) {
+    console.log('Skipping duplicate position recording');
+    return;
+  }
   positionHistory.push(posKey);
+  console.log('Position history length:', positionHistory.length);
 }
 function updateGameStatus() {
   // Check for threefold repetition manually
