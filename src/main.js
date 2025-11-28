@@ -591,8 +591,9 @@ function evaluatePosition() {
   }
 
   // Simple material evaluation
+  // Adjusted for new piece movements (close-combat focused)
   const pieceValues = {
-    'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'l': 350, 'g': 150, 'k': 0
+    'p': 100, 'n': 320, 'b': 330, 'r': 280, 'q': 450, 'l': 240, 'g': 150, 'k': 0
   };
 
   const fen = game.fen();
