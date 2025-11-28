@@ -23,9 +23,9 @@ NoaChess features:
 |-------|----------|----------------|
 | **Pawn (P)** | Moves forward 1, sideways 1; captures diagonally forward | `fsmWfcF` |
 | **Bishop (B)** | Moves 1 diagonal OR jumps 2 orthogonal | `FD` |
-| **Rook (R)** | Moves up to 4 squares orthogonally | `mR4cR4` |
-| **Queen (Q)** | Moves up to 4 squares in any direction | `mQ4cQ4` |
-| **Leaper (L)** | Moves 1 square (8-dir), captures 1 square + 2 square jump (8-dir) | `mWmFcWcFcAcD` |
+| **Rook (R)** | Moves up to 2 squares orthogonally | `mR2cR2` |
+| **Queen (Q)** | Knight movement + 1 diagonal (12 squares total) | `NF` |
+| **Leaper (L)** | Moves 1 square (8-dir); captures 2 square jump (Alibaba) | `mWmFcAcD` |
 | **Knight (N)** | Standard L-shape movement | `N` |
 | **King (K)** | Standard king (royal piece) | `K` |
 | **General (G)** | Moves 1 square any direction (promoted pawn, non-royal) | `WF` |

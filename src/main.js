@@ -12,6 +12,34 @@ let stockfishEngine = null;
 let stockfishReady = false;
 let variantsIni = '';
 
+// Auto-play system
+let autoPlayMode = false;
+let autoPlayGames = [];
+let autoPlayCount = 0;
+let autoPlayTarget = 0;
+let currentGameMoves = [];
+let currentEvaluation = 0; // Current position evaluation in centipawns
+
+// Captured pieces tracking
+let capturedByWhite = []; // Black pieces captured by white
+let capturedByBlack = []; // White pieces captured by white
+let boardOrientation = 'white'; // Track board orientation
+
+// Position history for threefold repetition detection
+let positionHistory = [];
+
+// Game ID for race condition protection
+let currentGameId = 0;
+
+// Current Stockfish listener (to remove before adding new one)
+let currentSearchListener = null;
+
+// Search sequence number to prevent stale results
+let searchSequence = 0;
+
+// Flag to prevent saving the same game multiple times
+let gameSaved = false;
+
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
   console.log('Initializing Stockfish...');
@@ -104,10 +132,26 @@ function getMovableColor() {
 }
 
 function initGame() {
+  // Increment game ID to invalidate previous game's callbacks
+  currentGameId++;
+  console.log('Starting game ID:', currentGameId);
+
+  // Clean up any existing Stockfish listener
+  if (currentSearchListener && stockfishEngine) {
+    stockfishEngine.removeMessageListener(currentSearchListener);
+    currentSearchListener = null;
+    stockfishEngine.postMessage('stop');
+  }
+
   // Create new game
   game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
   console.log('Game initialized with variant:', game.variant());
   console.log('Legal moves from start:', game.legalMoves());
+
+  // Initialize position history and record initial position
+  positionHistory = [];
+  gameSaved = false; // Reset game saved flag
+  recordPosition();
 
   // Initialize chessground
   const boardElement = document.getElementById('board');
@@ -202,7 +246,17 @@ function onMove(from, to) {
   // Check if move is legal
   if (actualMove && legalMoves.includes(actualMove)) {
     console.log('Executing move:', actualMove);
+    const fenBefore = game.fen();
     game.push(actualMove);
+    const fenAfter = game.fen();
+    currentGameMoves.push(actualMove); // Record move
+
+    // Detect and record capture
+    const capturedPiece = detectCapture(fenBefore, fenAfter);
+    recordCapture(capturedPiece);
+
+    // Record position for repetition detection
+    recordPosition();
 
     const turnColor = game.turn() ? 'white' : 'black';
     const movableColor = getMovableColor();
@@ -243,7 +297,13 @@ function shouldAIMove() {
 }
 
 function makeAIMove() {
-  if (game.isGameOver()) return;
+  // Check for game over including repetition
+  const isRepetitionDraw = checkThreefoldRepetition();
+
+  if (game.isGameOver() || isRepetitionDraw) {
+    updateGameStatus();
+    return;
+  }
 
   updateStatus('AI thinking...');
 
@@ -258,15 +318,83 @@ function makeAIMove() {
   if (stockfishReady && stockfishEngine) {
     const depth = 12;
     let bestMove = null;
+    let moveProcessed = false; // Flag to prevent duplicate processing
+    const gameIdAtStart = currentGameId; // Capture game ID for race condition check
+    searchSequence++; // Increment search sequence
+    const searchSeqAtStart = searchSequence;
+    console.log(`Starting search #${searchSeqAtStart} for game #${gameIdAtStart}`);
+
+    // Remove previous listener if exists (prevent multiple active listeners)
+    if (currentSearchListener) {
+      console.log('Removing previous search listener');
+      stockfishEngine.removeMessageListener(currentSearchListener);
+      currentSearchListener = null;
+    }
 
     // Temporary listener for this search
+    let finalEvaluation = 0;
+
     const searchListener = (line) => {
+      // Ignore results from previous games/searches or if already processed
+      if (gameIdAtStart !== currentGameId || searchSeqAtStart !== searchSequence || moveProcessed) {
+        if (line.startsWith('bestmove')) {
+          console.log(`Ignoring stale bestmove: search #${searchSeqAtStart} (current: #${searchSequence}), game #${gameIdAtStart} (current: #${currentGameId}), processed: ${moveProcessed}`);
+        }
+        stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
+        return;
+      }
+
+      // Parse evaluation from info lines - store final depth only
+      if (line.startsWith('info') && line.includes('score')) {
+        const depthMatch = line.match(/depth (\d+)/);
+        const currentDepth = depthMatch ? parseInt(depthMatch[1]) : 0;
+
+        // Only store evaluation at final depth
+        if (currentDepth >= depth) {
+          const cpMatch = line.match(/score cp (-?\d+)/);
+          const mateMatch = line.match(/score mate (-?\d+)/);
+
+          if (cpMatch) {
+            finalEvaluation = parseInt(cpMatch[1]);
+          } else if (mateMatch) {
+            const mateIn = parseInt(mateMatch[1]);
+            finalEvaluation = mateIn > 0 ? 3000 : -3000;
+          }
+        }
+      }
+
       if (line.startsWith('bestmove')) {
+        // Immediately mark as processed and remove listener to prevent duplicates
+        moveProcessed = true;
+        stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
+
+        // Double check game ID before processing
+        if (gameIdAtStart !== currentGameId) {
+          return;
+        }
+
         const parts = line.split(' ');
         bestMove = parts[1];
+        console.log(`Processing bestmove ${bestMove} from search #${searchSeqAtStart}`);
 
         if (bestMove && bestMove !== '(none)') {
+          const fenBefore = game.fen();
           game.push(bestMove);
+          const fenAfter = game.fen();
+          currentGameMoves.push(bestMove); // Record move
+
+          // Detect and record capture
+          const capturedPiece = detectCapture(fenBefore, fenAfter);
+          recordCapture(capturedPiece);
+
+          // Record position for repetition detection
+          recordPosition();
 
           chessground.set({
             fen: game.fen(),
@@ -285,13 +413,15 @@ function makeAIMove() {
             setTimeout(makeAIMove, 300);
           }
         }
-
-        // Remove this listener after getting bestmove
-        stockfishEngine.removeMessageListener(searchListener);
       }
     };
 
+    // Store and add the listener
+    currentSearchListener = searchListener;
     stockfishEngine.addMessageListener(searchListener);
+
+    // Stop any previous search before starting new one
+    stockfishEngine.postMessage('stop');
 
     // Send search command
     stockfishEngine.postMessage('position fen ' + game.fen());
@@ -299,9 +429,12 @@ function makeAIMove() {
 
     // Fallback timeout
     setTimeout(() => {
-      if (!bestMove) {
+      if (!bestMove && !moveProcessed) {
         console.log('Stockfish timeout, using fallback');
         stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
         makeFallbackMove();
       }
     }, 30000); // 30 second timeout
@@ -331,7 +464,17 @@ function makeFallbackMove() {
       selectedMove = moves[Math.floor(Math.random() * moves.length)];
     }
 
+    const fenBefore = game.fen();
     game.push(selectedMove);
+    const fenAfter = game.fen();
+    currentGameMoves.push(selectedMove); // Record move
+
+    // Detect and record capture
+    const capturedPiece = detectCapture(fenBefore, fenAfter);
+    recordCapture(capturedPiece);
+
+    // Record position for repetition detection
+    recordPosition();
 
     chessground.set({
       fen: game.fen(),
@@ -353,7 +496,17 @@ function makeMinimaxMove() {
     const bestMove = findBestMove(4); // depth 4
 
     if (bestMove) {
+      const fenBefore = game.fen();
       game.push(bestMove);
+      const fenAfter = game.fen();
+      currentGameMoves.push(bestMove); // Record move
+
+      // Detect and record capture
+      const capturedPiece = detectCapture(fenBefore, fenAfter);
+      recordCapture(capturedPiece);
+
+      // Record position for repetition detection
+      recordPosition();
 
       chessground.set({
         fen: game.fen(),
@@ -438,8 +591,9 @@ function evaluatePosition() {
   }
 
   // Simple material evaluation
+  // Adjusted for new piece movements (close-combat focused)
   const pieceValues = {
-    'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'l': 350, 'g': 150, 'k': 0
+    'p': 100, 'n': 320, 'b': 330, 'r': 280, 'q': 450, 'l': 240, 'g': 150, 'k': 0
   };
 
   const fen = game.fen();
@@ -458,13 +612,54 @@ function evaluatePosition() {
   return score;
 }
 
+// Get position key from FEN (board + turn + castling + en passant)
+function getPositionKey(fen) {
+  const parts = fen.split(' ');
+  // Include board, turn, castling rights, en passant square
+  return parts.slice(0, 4).join(' ');
+}
+
+// Check for threefold repetition
+function checkThreefoldRepetition() {
+  const currentPosition = getPositionKey(game.fen());
+  let count = 0;
+  for (const pos of positionHistory) {
+    if (pos === currentPosition) {
+      count++;
+      if (count >= 3) return true;
+    }
+  }
+  return false;
+}
+
+// Record current position to history
+function recordPosition() {
+  const posKey = getPositionKey(game.fen());
+  // Prevent duplicate consecutive recordings (race condition protection)
+  if (positionHistory.length > 0 && positionHistory[positionHistory.length - 1] === posKey) {
+    console.log('Skipping duplicate position recording');
+    return;
+  }
+  positionHistory.push(posKey);
+  console.log('Position history length:', positionHistory.length);
+}
+
 function updateGameStatus() {
-  if (game.isGameOver()) {
+  // Check for threefold repetition manually
+  const isRepetitionDraw = checkThreefoldRepetition();
+
+  if (game.isGameOver() || isRepetitionDraw) {
     const result = game.result();
-    if (result.includes('1-0')) {
+    let winner = 'draw';
+    if (isRepetitionDraw) {
+      updateStatus('Draw (3-fold repetition)');
+      winner = 'draw';
+    } else if (result.includes('1-0')) {
       updateStatus('White wins!');
+      winner = 'white';
     } else if (result.includes('0-1')) {
       updateStatus('Black wins!');
+      winner = 'black';
     } else {
       updateStatus('Draw');
     }
@@ -472,6 +667,24 @@ function updateGameStatus() {
     chessground.set({
       movable: { dests: new Map() }
     });
+
+    // Save game record (only once per game)
+    if (!gameSaved) {
+      gameSaved = true;
+      saveGameRecord(winner);
+    }
+
+    // Auto-play next game if enabled
+    if (autoPlayMode && autoPlayCount < autoPlayTarget) {
+      setTimeout(() => {
+        newGame();
+        setTimeout(makeAIMove, 500);
+      }, 1000);
+    } else if (autoPlayMode && autoPlayCount >= autoPlayTarget) {
+      autoPlayMode = false;
+      updateStatus(`Auto-play complete! ${autoPlayCount} games finished.`);
+      updateAutoPlayUI();
+    }
   } else {
     const turn = game.turn() ? 'White' : 'Black';
     const inCheck = game.isCheck() ? ' (in check!)' : '';
@@ -483,14 +696,370 @@ function updateStatus(message) {
   document.getElementById('status').textContent = message;
 }
 
+// Save game record
+function saveGameRecord(winner) {
+  const gameRecord = {
+    id: autoPlayGames.length + 1,
+    timestamp: new Date().toISOString(),
+    moves: [...currentGameMoves],
+    moveCount: currentGameMoves.length,
+    winner: winner,
+    opening: currentGameMoves.slice(0, Math.min(6, currentGameMoves.length)).join(' ')
+  };
+
+  autoPlayGames.push(gameRecord);
+  autoPlayCount++;
+
+  console.log(`Game ${autoPlayCount} saved:`, gameRecord);
+
+  // Update UI
+  if (autoPlayMode) {
+    updateStatus(`Game ${autoPlayCount}/${autoPlayTarget} - ${winner} wins`);
+  }
+
+  // Update stats display
+  updateStatsDisplay();
+}
+
+// Auto-play functions
+window.startAutoPlay = function() {
+  const numGames = parseInt(document.getElementById('autoPlayCount').value) || 10;
+  autoPlayTarget = numGames;
+  autoPlayMode = true;
+  autoPlayGames = [];
+  autoPlayCount = 0;
+
+  // Force AI vs AI mode
+  document.getElementById('playWhite').checked = false;
+  document.getElementById('playBlack').checked = false;
+
+  updateAutoPlayUI();
+  updateStatus(`Starting auto-play: ${numGames} games...`);
+
+  // Start first game
+  newGame();
+  setTimeout(makeAIMove, 500);
+}
+
+window.stopAutoPlay = function() {
+  autoPlayMode = false;
+  updateAutoPlayUI();
+  updateStatus(`Auto-play stopped. ${autoPlayCount} games completed.`);
+}
+
+function updateAutoPlayUI() {
+  const startBtn = document.getElementById('startAutoPlay');
+  const stopBtn = document.getElementById('stopAutoPlay');
+  const downloadBtn = document.getElementById('downloadGames');
+
+  if (startBtn && stopBtn) {
+    startBtn.disabled = autoPlayMode;
+    stopBtn.disabled = !autoPlayMode;
+  }
+
+  if (downloadBtn) {
+    downloadBtn.disabled = autoPlayGames.length === 0;
+  }
+}
+
+window.downloadGames = function() {
+  if (autoPlayGames.length === 0) {
+    alert('No games to download!');
+    return;
+  }
+
+  // Calculate statistics
+  const stats = calculateOpeningStats();
+
+  const data = {
+    totalGames: autoPlayGames.length,
+    statistics: stats,
+    games: autoPlayGames
+  };
+
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `noachess-games-${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  updateStatus(`Downloaded ${autoPlayGames.length} games!`);
+}
+
+function calculateOpeningStats() {
+  const openingCounts = {};
+  const openingWins = {};
+
+  autoPlayGames.forEach(game => {
+    const opening = game.opening;
+    if (!openingCounts[opening]) {
+      openingCounts[opening] = 0;
+      openingWins[opening] = { white: 0, black: 0, draw: 0 };
+    }
+    openingCounts[opening]++;
+    openingWins[opening][game.winner]++;
+  });
+
+  const stats = [];
+  for (const opening in openingCounts) {
+    stats.push({
+      opening: opening,
+      count: openingCounts[opening],
+      whiteWins: openingWins[opening].white,
+      blackWins: openingWins[opening].black,
+      draws: openingWins[opening].draw
+    });
+  }
+
+  // Sort by count
+  stats.sort((a, b) => b.count - a.count);
+
+  return stats;
+}
+
+function updateStatsDisplay() {
+  const statsEl = document.getElementById('autoPlayStats');
+  if (!statsEl) return;
+
+  if (autoPlayGames.length === 0) {
+    statsEl.innerHTML = '<p>No games played yet.</p>';
+    return;
+  }
+
+  const whiteWins = autoPlayGames.filter(g => g.winner === 'white').length;
+  const blackWins = autoPlayGames.filter(g => g.winner === 'black').length;
+  const draws = autoPlayGames.filter(g => g.winner === 'draw').length;
+
+  statsEl.innerHTML = `
+    <p><strong>Games played:</strong> ${autoPlayGames.length}</p>
+    <p><strong>White wins:</strong> ${whiteWins} (${(whiteWins/autoPlayGames.length*100).toFixed(1)}%)</p>
+    <p><strong>Black wins:</strong> ${blackWins} (${(blackWins/autoPlayGames.length*100).toFixed(1)}%)</p>
+    <p><strong>Draws:</strong> ${draws} (${(draws/autoPlayGames.length*100).toFixed(1)}%)</p>
+  `;
+}
+
+function requestEvaluation() {
+  if (!stockfishReady || !stockfishEngine) return;
+
+  const evalDepth = 10;
+  let lastEvaluation = 0;
+
+  // Quick evaluation at depth 10 for responsiveness
+  const evalListener = (line) => {
+    if (line.startsWith('info') && line.includes('score')) {
+      const depthMatch = line.match(/depth (\d+)/);
+      const currentDepth = depthMatch ? parseInt(depthMatch[1]) : 0;
+
+      // Only store final depth evaluation
+      if (currentDepth >= evalDepth) {
+        const cpMatch = line.match(/score cp (-?\d+)/);
+        const mateMatch = line.match(/score mate (-?\d+)/);
+
+        if (cpMatch) {
+          lastEvaluation = parseInt(cpMatch[1]);
+        } else if (mateMatch) {
+          const mateIn = parseInt(mateMatch[1]);
+          lastEvaluation = mateIn > 0 ? 3000 : -3000;
+        }
+      }
+    }
+
+    if (line.startsWith('bestmove')) {
+      stockfishEngine.removeMessageListener(evalListener);
+      // Update graph with final evaluation
+      updateEvaluationGraph(lastEvaluation);
+    }
+  };
+
+  stockfishEngine.addMessageListener(evalListener);
+  stockfishEngine.postMessage('position fen ' + game.fen());
+  stockfishEngine.postMessage('go depth ' + evalDepth);
+}
+
+function updateEvaluationGraph(evalCp) {
+  // Convert centipawns to percentage (500cp = 100% advantage)
+  const maxCp = 500;
+  let percent = Math.min(Math.max(evalCp / maxCp * 50, -50), 50);
+
+  // Calculate bar heights
+  // 50% = center (equal position)
+  // > 50% = white advantage (white bar grows from bottom)
+  // < 50% = black advantage (black bar grows from top)
+
+  const whiteHeight = 50 + percent; // 0-100%
+  const blackHeight = 50 - percent; // 0-100%
+
+  const graphBlack = document.getElementById('graphBlack');
+  const graphWhite = document.getElementById('graphWhite');
+  const graphDraw = document.getElementById('graphDraw');
+
+  graphBlack.style.height = blackHeight + '%';
+  graphWhite.style.height = whiteHeight + '%';
+  graphDraw.style.height = '0%';
+
+  // Update evaluation text
+  const evalText = (evalCp / 100).toFixed(1);
+  if (evalCp > 0) {
+    document.getElementById('whitePercent').textContent = '+' + evalText;
+    document.getElementById('blackPercent').textContent = '';
+  } else if (evalCp < 0) {
+    document.getElementById('blackPercent').textContent = evalText;
+    document.getElementById('whitePercent').textContent = '';
+  } else {
+    document.getElementById('whitePercent').textContent = '0.0';
+    document.getElementById('blackPercent').textContent = '';
+  }
+  document.getElementById('drawPercent').textContent = '';
+}
+
+function updateWinrateGraph(whiteWins, blackWins, draws) {
+  const total = whiteWins + blackWins + draws;
+
+  if (total === 0) {
+    // Reset graph to center
+    updateEvaluationGraph(0);
+    return;
+  }
+
+  const blackPercent = (blackWins / total) * 100;
+  const drawPercent = (draws / total) * 100;
+  const whitePercent = (whiteWins / total) * 100;
+
+  // Update bar heights and positions
+  const graphBlack = document.getElementById('graphBlack');
+  const graphDraw = document.getElementById('graphDraw');
+  const graphWhite = document.getElementById('graphWhite');
+
+  graphBlack.style.height = blackPercent + '%';
+  graphDraw.style.height = drawPercent + '%';
+  graphDraw.style.top = blackPercent + '%';
+  graphWhite.style.height = whitePercent + '%';
+
+  // Update percentages text
+  document.getElementById('blackPercent').textContent = blackPercent >= 10 ? blackPercent.toFixed(0) + '%' : '';
+  document.getElementById('drawPercent').textContent = drawPercent >= 5 ? drawPercent.toFixed(0) + '%' : '';
+  document.getElementById('whitePercent').textContent = whitePercent >= 10 ? whitePercent.toFixed(0) + '%' : '';
+}
+
 // Global functions for HTML buttons
 window.newGame = function() {
   if (game) game.delete();
+  currentGameMoves = []; // Reset move record
+  currentEvaluation = 0; // Reset evaluation
+  positionHistory = []; // Reset position history
+  resetCapturedPieces(); // Reset captured pieces
   initGame();
 }
 
 window.flipBoard = function() {
   chessground.toggleOrientation();
+  boardOrientation = boardOrientation === 'white' ? 'black' : 'white';
+  updateCapturedPiecesDisplay();
+}
+
+// Get pieces from FEN string
+function getPiecesFromFen(fen) {
+  const pieces = {};
+  const pieceTypes = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'k', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'K'];
+
+  pieceTypes.forEach(p => pieces[p] = 0);
+
+  const fenBoard = fen.split(' ')[0];
+  for (const char of fenBoard) {
+    if (pieceTypes.includes(char)) {
+      pieces[char]++;
+    }
+  }
+  return pieces;
+}
+
+// Detect captured piece by comparing FEN before and after move
+function detectCapture(fenBefore, fenAfter) {
+  const piecesBefore = getPiecesFromFen(fenBefore);
+  const piecesAfter = getPiecesFromFen(fenAfter);
+
+  // Check for missing pieces
+  const allPieces = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'P', 'N', 'B', 'R', 'Q', 'L', 'G'];
+
+  for (const piece of allPieces) {
+    if (piecesAfter[piece] < piecesBefore[piece]) {
+      return piece;
+    }
+  }
+  return null;
+}
+
+// Record a capture
+function recordCapture(capturedPiece) {
+  if (!capturedPiece) return;
+
+  // Lowercase = black piece (captured by white)
+  // Uppercase = white piece (captured by black)
+  if (capturedPiece === capturedPiece.toLowerCase()) {
+    capturedByWhite.push(capturedPiece);
+  } else {
+    capturedByBlack.push(capturedPiece.toLowerCase());
+  }
+
+  updateCapturedPiecesDisplay();
+}
+
+// Update captured pieces display
+function updateCapturedPiecesDisplay() {
+  const topContainer = document.getElementById('capturedTop');
+  const bottomContainer = document.getElementById('capturedBottom');
+
+  if (!topContainer || !bottomContainer) return;
+
+  // Sort pieces by value for display
+  const pieceOrder = { 'q': 0, 'r': 1, 'b': 2, 'l': 3, 'n': 4, 'g': 5, 'p': 6 };
+
+  const sortPieces = (arr) => [...arr].sort((a, b) => pieceOrder[a] - pieceOrder[b]);
+
+  const whiteCapturesSorted = sortPieces(capturedByWhite);
+  const blackCapturesSorted = sortPieces(capturedByBlack);
+
+  // Generate HTML for piece display
+  const generatePieceHtml = (pieces, color) => {
+    return pieces.map(p => `<span class="captured-piece ${color}">${getPieceSymbol(p, color)}</span>`).join('');
+  };
+
+  // When white is at bottom: white's captures (black pieces) at bottom, black's captures (white pieces) at top
+  // When black is at bottom: swap positions
+  if (boardOrientation === 'white') {
+    topContainer.innerHTML = generatePieceHtml(blackCapturesSorted, 'white');
+    bottomContainer.innerHTML = generatePieceHtml(whiteCapturesSorted, 'black');
+  } else {
+    topContainer.innerHTML = generatePieceHtml(whiteCapturesSorted, 'black');
+    bottomContainer.innerHTML = generatePieceHtml(blackCapturesSorted, 'white');
+  }
+}
+
+// Get chess piece unicode symbol
+function getPieceSymbol(piece, color) {
+  const symbols = {
+    'k': color === 'white' ? '♔' : '♚',
+    'q': color === 'white' ? '♕' : '♛',
+    'r': color === 'white' ? '♖' : '♜',
+    'b': color === 'white' ? '♗' : '♝',
+    'n': color === 'white' ? '♘' : '♞',
+    'p': color === 'white' ? '♙' : '♟',
+    'l': color === 'white' ? '⚔' : '⚔',  // Leaper uses dagger symbol
+    'g': color === 'white' ? '★' : '★'   // General uses star symbol
+  };
+  return symbols[piece] || piece;
+}
+
+// Reset captured pieces
+function resetCapturedPieces() {
+  capturedByWhite = [];
+  capturedByBlack = [];
+  updateCapturedPiecesDisplay();
 }
 
 window.undoMove = function() {

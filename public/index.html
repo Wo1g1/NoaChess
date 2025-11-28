@@ -55,6 +55,59 @@
       gap: 30px;
     }
 
+    .board-wrapper {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .captured-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 40px;
+      height: 600px;
+      margin-right: 8px;
+    }
+
+    .captured-pieces {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 5px 0;
+    }
+
+    #capturedTop {
+      justify-content: flex-start;
+    }
+
+    #capturedBottom {
+      justify-content: flex-end;
+    }
+
+    .captured-piece {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .captured-piece.white {
+      color: #fff;
+      text-shadow: 0 0 2px #000, 0 0 2px #000;
+    }
+
+    .captured-piece.black {
+      color: #333;
+    }
+
+    body.dark .captured-piece.white {
+      color: #eee;
+      text-shadow: 0 0 2px #000;
+    }
+
+    body.dark .captured-piece.black {
+      color: #888;
+    }
+
     .board-container {
       flex: 0 0 600px;
     }
@@ -183,6 +236,10 @@
       main {
         flex-direction: column;
         align-items: center;
+      }
+
+      .board-wrapper {
+        flex: none;
       }
 
       .board-container {
@@ -450,8 +507,14 @@
   </header>
 
   <main>
-    <div class="board-container">
-      <div id="board"></div>
+    <div class="board-wrapper">
+      <div class="captured-container">
+        <div id="capturedTop" class="captured-pieces"></div>
+        <div id="capturedBottom" class="captured-pieces"></div>
+      </div>
+      <div class="board-container">
+        <div id="board"></div>
+      </div>
     </div>
 
     <div class="controls">
@@ -495,6 +558,20 @@
         <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">
           쉬움: 기본 AI | 어려움: Fairy-Stockfish
         </p>
+      </div>
+
+      <div class="section">
+        <h2>AI 자가 대국</h2>
+        <div class="input-group">
+          <label for="autoPlayCount">대국 수:</label>
+          <input type="number" id="autoPlayCount" value="10" min="1" max="1000">
+        </div>
+        <button class="btn" id="startAutoPlay" onclick="startAutoPlay()">시작</button>
+        <button class="btn" id="stopAutoPlay" onclick="stopAutoPlay()" disabled>중지</button>
+        <button class="btn" id="downloadGames" onclick="downloadGames()" disabled>다운로드</button>
+        <div id="autoPlayStats" style="margin-top: 15px; font-size: 0.9rem;">
+          <p>No games played yet.</p>
+        </div>
       </div>
 
       <div class="section">
@@ -573,71 +650,49 @@
         <div class="piece-explanation">
           <h4>♜ 룩 (Rook)</h4>
           <div class="piece-diagram">
-            <svg viewBox="0 0 9 9" class="mini-board">
-              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="0" width="1" height="1"/><rect fill="#b58863" x="7" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#b58863" x="6" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="7" y="1" width="1" height="1"/><rect fill="#b58863" x="8" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="2" width="1" height="1"/><rect fill="#b58863" x="7" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#b58863" x="6" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="7" y="3" width="1" height="1"/><rect fill="#b58863" x="8" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="4" width="1" height="1"/><rect fill="#b58863" x="7" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/><rect fill="#b58863" x="6" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="7" y="5" width="1" height="1"/><rect fill="#b58863" x="8" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="6" width="1" height="1"/><rect fill="#b58863" x="1" y="6" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="6" width="1" height="1"/><rect fill="#b58863" x="3" y="6" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="6" width="1" height="1"/><rect fill="#b58863" x="5" y="6" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="6" width="1" height="1"/><rect fill="#b58863" x="7" y="6" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="6" width="1" height="1"/><rect fill="#b58863" x="0" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="7" width="1" height="1"/><rect fill="#b58863" x="2" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="7" width="1" height="1"/><rect fill="#b58863" x="4" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="7" width="1" height="1"/><rect fill="#b58863" x="6" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="7" y="7" width="1" height="1"/><rect fill="#b58863" x="8" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="8" width="1" height="1"/><rect fill="#b58863" x="1" y="8" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="8" width="1" height="1"/><rect fill="#b58863" x="3" y="8" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="8" width="1" height="1"/><rect fill="#b58863" x="5" y="8" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="8" width="1" height="1"/><rect fill="#b58863" x="7" y="8" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="8" width="1" height="1"/>
-              <circle cx="4.5" cy="4.5" r="0.3" fill="#333" opacity="0.8"/>
-              <circle cx="4.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="0.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="5.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="6.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="7.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="8.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="3.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <!-- Up 2 squares -->
+              <circle cx="2.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="2.5" cy="0.5" r="0.15" fill="purple" opacity="0.7"/>
+              <!-- Down 2 squares -->
+              <circle cx="2.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
               <circle cx="2.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="1.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="0.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="5.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="6.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="7.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="8.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
+              <!-- Left 2 squares -->
+              <circle cx="1.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="0.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
+              <!-- Right 2 squares -->
+              <circle cx="3.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="4.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
             </svg>
           </div>
-          <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">* 최대 4칸까지 이동/공격 가능</p>
+          <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">* 최대 2칸까지 이동/공격 가능</p>
         </div>
 
         <div class="piece-explanation">
           <h4>♛ 퀸 (Queen)</h4>
           <div class="piece-diagram">
-            <svg viewBox="0 0 9 9" class="mini-board">
-              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="0" width="1" height="1"/><rect fill="#b58863" x="7" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#b58863" x="6" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="7" y="1" width="1" height="1"/><rect fill="#b58863" x="8" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="2" width="1" height="1"/><rect fill="#b58863" x="7" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#b58863" x="6" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="7" y="3" width="1" height="1"/><rect fill="#b58863" x="8" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="4" width="1" height="1"/><rect fill="#b58863" x="7" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/><rect fill="#b58863" x="6" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="7" y="5" width="1" height="1"/><rect fill="#b58863" x="8" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="6" width="1" height="1"/><rect fill="#b58863" x="1" y="6" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="6" width="1" height="1"/><rect fill="#b58863" x="3" y="6" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="6" width="1" height="1"/><rect fill="#b58863" x="5" y="6" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="6" width="1" height="1"/><rect fill="#b58863" x="7" y="6" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="6" width="1" height="1"/><rect fill="#b58863" x="0" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="7" width="1" height="1"/><rect fill="#b58863" x="2" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="7" width="1" height="1"/><rect fill="#b58863" x="4" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="7" width="1" height="1"/><rect fill="#b58863" x="6" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="7" y="7" width="1" height="1"/><rect fill="#b58863" x="8" y="7" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="8" width="1" height="1"/><rect fill="#b58863" x="1" y="8" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="8" width="1" height="1"/><rect fill="#b58863" x="3" y="8" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="8" width="1" height="1"/><rect fill="#b58863" x="5" y="8" width="1" height="1"/><rect fill="#f0d9b5" x="6" y="8" width="1" height="1"/><rect fill="#b58863" x="7" y="8" width="1" height="1"/><rect fill="#f0d9b5" x="8" y="8" width="1" height="1"/>
-              <circle cx="4.5" cy="4.5" r="0.3" fill="#333" opacity="0.8"/>
-              <circle cx="4.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
+            <svg viewBox="0 0 6 6" class="mini-board">
+              <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
+              <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
+              <!-- Knight moves (8) -->
+              <circle cx="1.5" cy="0.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="3.5" cy="0.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="0.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
               <circle cx="4.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="0.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="5.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="6.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="7.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="4.5" cy="8.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="3.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="2.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="0.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="4.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
               <circle cx="1.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="0.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="5.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="6.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="7.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="8.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="3.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="2.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="3.5" cy="4.5" r="0.15" fill="purple" opacity="0.7"/>
+              <!-- Ferz moves (4 diagonals) -->
               <circle cx="1.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="0.5" cy="0.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="5.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="6.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="7.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="8.5" cy="0.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="3.5" cy="5.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="2.5" cy="6.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="1.5" cy="7.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="0.5" cy="8.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="5.5" cy="5.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="6.5" cy="6.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="7.5" cy="7.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="8.5" cy="8.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="3.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="1.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
+              <circle cx="3.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
             </svg>
           </div>
-          <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">* 최대 4칸까지 이동/공격 가능</p>
+          <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">* 나이트 이동(8칸) + 대각선 1칸(4칸) = 총 12칸</p>
         </div>
 
         <div class="piece-explanation">
@@ -664,14 +719,16 @@
             <svg viewBox="0 0 6 6" class="mini-board">
               <rect fill="#f0d9b5" x="0" y="0" width="1" height="1"/><rect fill="#b58863" x="1" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="0" width="1" height="1"/><rect fill="#b58863" x="3" y="0" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="0" width="1" height="1"/><rect fill="#b58863" x="5" y="0" width="1" height="1"/><rect fill="#b58863" x="0" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="1" width="1" height="1"/><rect fill="#b58863" x="2" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="1" width="1" height="1"/><rect fill="#b58863" x="4" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="1" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="2" width="1" height="1"/><rect fill="#b58863" x="1" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="2" width="1" height="1"/><rect fill="#b58863" x="3" y="2" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="2" width="1" height="1"/><rect fill="#b58863" x="5" y="2" width="1" height="1"/><rect fill="#b58863" x="0" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="3" width="1" height="1"/><rect fill="#b58863" x="2" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="3" width="1" height="1"/><rect fill="#b58863" x="4" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="3" width="1" height="1"/><rect fill="#f0d9b5" x="0" y="4" width="1" height="1"/><rect fill="#b58863" x="1" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="2" y="4" width="1" height="1"/><rect fill="#b58863" x="3" y="4" width="1" height="1"/><rect fill="#f0d9b5" x="4" y="4" width="1" height="1"/><rect fill="#b58863" x="5" y="4" width="1" height="1"/><rect fill="#b58863" x="0" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="1" y="5" width="1" height="1"/><rect fill="#b58863" x="2" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="3" y="5" width="1" height="1"/><rect fill="#b58863" x="4" y="5" width="1" height="1"/><rect fill="#f0d9b5" x="5" y="5" width="1" height="1"/>
               <circle cx="2.5" cy="2.5" r="0.3" fill="#333" opacity="0.8"/>
-              <circle cx="2.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="1.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="3.5" cy="1.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="1.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="3.5" cy="2.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="2.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="1.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
-              <circle cx="3.5" cy="3.5" r="0.15" fill="purple" opacity="0.7"/>
+              <!-- Movement: Man (8 directions, 1 step) -->
+              <circle cx="2.5" cy="1.5" r="0.15" fill="blue" opacity="0.7"/>
+              <circle cx="1.5" cy="1.5" r="0.15" fill="blue" opacity="0.7"/>
+              <circle cx="3.5" cy="1.5" r="0.15" fill="blue" opacity="0.7"/>
+              <circle cx="1.5" cy="2.5" r="0.15" fill="blue" opacity="0.7"/>
+              <circle cx="3.5" cy="2.5" r="0.15" fill="blue" opacity="0.7"/>
+              <circle cx="2.5" cy="3.5" r="0.15" fill="blue" opacity="0.7"/>
+              <circle cx="1.5" cy="3.5" r="0.15" fill="blue" opacity="0.7"/>
+              <circle cx="3.5" cy="3.5" r="0.15" fill="blue" opacity="0.7"/>
+              <!-- Capture: Alibaba (8 directions, 2 steps jump) -->
               <circle cx="2.5" cy="0.5" r="0.15" fill="red" opacity="0.7"/>
               <circle cx="0.5" cy="0.5" r="0.15" fill="red" opacity="0.7"/>
               <circle cx="4.5" cy="0.5" r="0.15" fill="red" opacity="0.7"/>
@@ -682,6 +739,7 @@
               <circle cx="4.5" cy="4.5" r="0.15" fill="red" opacity="0.7"/>
             </svg>
           </div>
+          <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">* 이동: 8방향 1칸 | 공격: 8방향 2칸 점프</p>
         </div>
 
         <div class="piece-explanation">
@@ -734,6 +792,8 @@
           <li>폰 승급은 자동으로 이루어지며, 선택할 수 없습니다</li>
           <li>승급 기물은 항상 장군(General)입니다</li>
           <li>교착 상태(Stalemate)는 패배로 처리됩니다</li>
+          <li><strong>3회 동형 반복:</strong> 같은 포지션이 3번 반복되면 무승부</li>
+          <li><strong>킹만 남은 경우:</strong> 킹 외에 기물이 없으면 즉시 패배</li>
         </ul>
       </div>
     </div>
