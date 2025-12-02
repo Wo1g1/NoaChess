@@ -13,7 +13,7 @@ let currentVariant = 'noachess';
 // Variant configurations
 const VARIANT_CONFIG = {
   chess: {
-    name: 'Chess',
+    name: 'chess',
     displayName: 'Original Chess',
     subtitle: 'Classic 8×8 chess',
     iniFile: 'chess.ini',
@@ -33,7 +33,7 @@ const VARIANT_CONFIG = {
     displayName: 'Orda Chess',
     subtitle: 'Asymmetric 8×8 variant (Kingdom vs Horde)',
     iniFile: 'orda.ini',
-    startFen: 'lhaykahl/8/pppppppp/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1',
+    startFen: 'loayhalo/8/pppppppp/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1',
     boardSize: { width: 8, height: 8 }
   }
 };
