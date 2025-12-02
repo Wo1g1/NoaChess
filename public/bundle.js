@@ -9403,7 +9403,7 @@ const VARIANT_CONFIG = {
     displayName: 'Orda Chess',
     subtitle: 'Asymmetric 8×8 variant (Kingdom vs Horde)',
     iniFile: 'orda.ini',
-    startFen: 'loayhalo/8/pppppppp/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1',
+    startFen: 'lhaykahl/8/pppppppp/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1',
     boardSize: {
       width: 8,
       height: 8
