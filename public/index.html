@@ -41,54 +41,10 @@
     .subtitle {
       color: #666;
       font-size: 1rem;
-      margin-bottom: 15px;
     }
 
     body.dark .subtitle {
       color: #aaa;
-    }
-
-    .variant-selector {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    .variant-btn {
-      padding: 8px 20px;
-      background: #f5f5f5;
-      color: #333;
-      border: 2px solid #8B4513;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .variant-btn:hover {
-      background: #8B4513;
-      color: white;
-    }
-
-    .variant-btn.active {
-      background: #8B4513;
-      color: white;
-    }
-
-    body.dark .variant-btn {
-      background: #2a2a2a;
-      color: #e0e0e0;
-      border-color: #a0642f;
-    }
-
-    body.dark .variant-btn:hover {
-      background: #a0642f;
-    }
-
-    body.dark .variant-btn.active {
-      background: #a0642f;
     }
 
     main {
@@ -153,22 +109,10 @@
     }
 
     .board-container {
-      flex: 0 0 auto;
+      flex: 0 0 600px;
     }
 
     #board {
-      width: 600px;
-      height: 600px;
-      max-width: 100%;
-    }
-
-    /* Dynamic board sizing based on variant */
-    #board.board-8x8 {
-      width: 640px;
-      height: 640px;
-    }
-
-    #board.board-6x6 {
       width: 600px;
       height: 600px;
     }
@@ -558,14 +502,8 @@
   <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
 
   <header>
-    <h1 id="gameTitle">NoaChess</h1>
-    <p class="subtitle" id="gameSubtitle">A unique 6×6 chess variant</p>
-
-    <div class="variant-selector">
-      <button class="variant-btn" data-variant="chess" onclick="selectVariant('chess')">Original Chess</button>
-      <button class="variant-btn active" data-variant="noachess" onclick="selectVariant('noachess')">NoaChess</button>
-      <button class="variant-btn" data-variant="orda" onclick="selectVariant('orda')">Orda Chess</button>
-    </div>
+    <h1>NoaChess</h1>
+    <p class="subtitle">A unique 6×6 chess variant</p>
   </header>
 
   <main>
