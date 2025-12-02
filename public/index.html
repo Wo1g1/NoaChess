@@ -334,6 +334,12 @@
       background-size: 100% 100% !important;
     }
 
+    /* Piece sizing - make pieces larger and centered */
+    .cg-wrap piece {
+      background-size: 85% !important;
+      background-position: center !important;
+    }
+
     /* Enhanced General piece (promoted pawn) */
     .cg-wrap piece.g.white,
     .cg-wrap piece.general.white {
@@ -343,6 +349,53 @@
     .cg-wrap piece.g.black,
     .cg-wrap piece.general.black {
       background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NSIgaGVpZ2h0PSI0NSI+CiAgPGcgZmlsbD0iIzAwMCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj4KICAgIDwhLS0gSGVhZCB3aXRoIHNtYWxsIGNyb3duIC0tPgogICAgPGNpcmNsZSBjeD0iMjIuNSIgY3k9IjEzIiByPSI0IiBmaWxsPSIjMDAwIi8+CiAgICA8cGF0aCBkPSJNMTkgMTBoN2wtMSAzaC01eiIgZmlsbD0iIzAwMCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPgogICAgPCEtLSBCb2R5IChlbmhhbmNlZCBwYXduIHN0eWxlKSAtLT4KICAgIDxwYXRoIGQ9Ik0xOSAxNmMwLTEuNSAxLjUtMi41IDMuNS0yLjVzMy41IDEgMy41IDIuNSIgZmlsbD0iIzAwMCIvPgogICAgPHBhdGggZD0iTTE3IDI1YzAgMCAyLTQgNS41LTRzNS41IDQgNS41IDQiIGZpbGw9IiMwMDAiLz4KICAgIDwhLS0gQmFzZSAtLT4KICAgIDxwYXRoIGQ9Ik0xMyAzNWMwIDAgMy01IDkuNS01czkuNSA1IDkuNSA1eiIgZmlsbD0iIzAwMCIvPgogICAgPHBhdGggZD0iTTEyIDM2aDIxIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZT0iI2ZmZiIvPgogIDwvZz4KPC9zdmc+Cg==') !important;
+    }
+
+    /* Orda Chess pieces - temporary mapping to standard pieces */
+    /* h = Centaur/Khan (King+Knight) - use Queen image */
+    .cg-wrap piece.h.white,
+    .cg-wrap piece.centaur.white {
+      background-image: inherit; /* Uses queen.white from cburnett.css */
+    }
+    .cg-wrap piece.h.black,
+    .cg-wrap piece.centaur.black {
+      background-image: inherit; /* Uses queen.black from cburnett.css */
+    }
+
+    /* a = Knibis/Archer (Knight move + Bishop capture) - use Bishop image */
+    .cg-wrap piece.a.white,
+    .cg-wrap piece.archer.white,
+    .cg-wrap piece.knibis.white {
+      background-image: inherit; /* Uses bishop.white from cburnett.css */
+    }
+    .cg-wrap piece.a.black,
+    .cg-wrap piece.archer.black,
+    .cg-wrap piece.knibis.black {
+      background-image: inherit; /* Uses bishop.black from cburnett.css */
+    }
+
+    /* l = Kniroo/Lancer (Knight move + Rook capture) - use Rook image */
+    .cg-wrap piece.l.white,
+    .cg-wrap piece.lancer.white,
+    .cg-wrap piece.kniroo.white {
+      background-image: inherit; /* Uses rook.white from cburnett.css */
+    }
+    .cg-wrap piece.l.black,
+    .cg-wrap piece.lancer.black,
+    .cg-wrap piece.kniroo.black {
+      background-image: inherit; /* Uses rook.black from cburnett.css */
+    }
+
+    /* y = Silver/Yurt (King) - use King image */
+    .cg-wrap piece.y.white,
+    .cg-wrap piece.yurt.white,
+    .cg-wrap piece.silver.white {
+      background-image: inherit; /* Uses king.white from cburnett.css */
+    }
+    .cg-wrap piece.y.black,
+    .cg-wrap piece.yurt.black,
+    .cg-wrap piece.silver.black {
+      background-image: inherit; /* Uses king.black from cburnett.css */
     }
 
     /* Difficulty radio buttons */
