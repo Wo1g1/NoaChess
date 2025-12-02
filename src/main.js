@@ -1181,14 +1181,11 @@ window.selectVariant = function(variantKey) {
     return;
   }
 
-  // Update button states
-  const buttons = document.querySelectorAll('.variant-btn');
-  buttons.forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.dataset.variant === variantKey) {
-      btn.classList.add('active');
-    }
-  });
+  // Update select dropdown
+  const select = document.getElementById('variantSelect');
+  if (select) {
+    select.value = variantKey;
+  }
 
   // Clean up current game
   if (game) {
@@ -1203,6 +1200,12 @@ window.selectVariant = function(variantKey) {
   if (autoPlayMode) {
     autoPlayMode = false;
     updateAutoPlayUI();
+  }
+
+  // Destroy existing chessground to force recreation
+  if (chessground) {
+    chessground.destroy();
+    chessground = null;
   }
 
   // Load new variant
