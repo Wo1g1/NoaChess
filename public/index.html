@@ -203,37 +203,39 @@
     }
 
     .variant-selector label {
-      display: flex;
-      align-items: center;
-      padding: 10px;
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .variant-dropdown {
+      width: 100%;
+      padding: 10px 12px;
       border: 2px solid #ddd;
       border-radius: 5px;
+      background: white;
+      font-size: 1rem;
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    .variant-selector label:hover {
-      background: #f0f0f0;
+    .variant-dropdown:hover {
       border-color: #8B4513;
     }
 
-    body.dark .variant-selector label {
-      border-color: #555;
+    .variant-dropdown:focus {
+      outline: none;
+      border-color: #8B4513;
+      box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
     }
 
-    body.dark .variant-selector label:hover {
+    body.dark .variant-dropdown {
       background: #333;
-      border-color: #8B4513;
+      border-color: #555;
+      color: #e0e0e0;
     }
 
-    .variant-selector input[type="radio"] {
-      margin-right: 10px;
-      cursor: pointer;
-    }
-
-    .variant-selector label:has(input:checked) {
-      background: #8B4513;
-      color: white;
+    body.dark .variant-dropdown:hover {
       border-color: #8B4513;
     }
 
@@ -562,14 +564,11 @@
       <div class="section">
         <h2>Chess Variant</h2>
         <div class="variant-selector">
-          <label>
-            <input type="radio" name="variant" value="noachess" checked>
-            NoaChess (6×6)
-          </label>
-          <label>
-            <input type="radio" name="variant" value="khasar">
-            Khasar Chess (9×9)
-          </label>
+          <label for="variantSelect">Select variant:</label>
+          <select id="variantSelect" class="variant-dropdown">
+            <option value="noachess" selected>NoaChess (6×6)</option>
+            <option value="khasar">Khasar Chess (9×9)</option>
+          </select>
         </div>
       </div>
 

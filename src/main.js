@@ -1150,12 +1150,12 @@ window.undoMove = function() {
 
 // Variant selector event listener
 document.addEventListener('DOMContentLoaded', () => {
-  const variantRadios = document.querySelectorAll('input[name="variant"]');
-  variantRadios.forEach(radio => {
-    radio.addEventListener('change', (e) => {
+  const variantSelect = document.getElementById('variantSelect');
+  if (variantSelect) {
+    variantSelect.addEventListener('change', (e) => {
       const selectedVariant = e.target.value;
       console.log('Variant changed to:', selectedVariant);
       loadVariant(selectedVariant);
     });
-  });
+  }
 });
