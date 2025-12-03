@@ -9596,9 +9596,10 @@ function initGame() {
   // Initialize or update chessground
   const boardElement = document.getElementById('board');
 
-  // Update board size class
+  // Update board size and variant classes
   boardElement.className = '';
   boardElement.classList.add(`board-${config.boardSize.width}x${config.boardSize.height}`);
+  boardElement.classList.add(`variant-${currentVariant}`);
 
   // Update captured pieces container height to match board
   const capturedContainer = document.querySelector('.captured-container');

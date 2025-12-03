@@ -335,15 +335,15 @@
     }
 
     /* Piece sizing - make pieces larger and centered */
-    /* Default for 8x8 boards */
+    /* Default for 8x8 boards (640px / 8 = 80px squares) */
     #board.board-8x8 .cg-wrap piece {
       background-size: 90% !important;
       background-position: center !important;
     }
 
-    /* Larger sizing for 6x6 boards (bigger squares) */
+    /* 6x6 boards have larger squares (600px / 6 = 100px) */
     #board.board-6x6 .cg-wrap piece {
-      background-size: 85% !important;
+      background-size: 92% !important;
       background-position: center !important;
     }
 
@@ -359,49 +359,51 @@
     }
 
     /* Orda Chess pieces - using PyChess-Variants SVG files */
+    /* Only apply these styles when playing Orda variant to avoid conflicts with NoaChess Leaper */
+
     /* h = Centaur/Khan (King+Knight) */
-    .cg-wrap piece.h.white,
-    .cg-wrap piece.centaur.white {
+    #board.variant-orda .cg-wrap piece.h.white,
+    #board.variant-orda .cg-wrap piece.centaur.white {
       background-image: url('/assets/orda-pieces/wH.svg') !important;
     }
-    .cg-wrap piece.h.black,
-    .cg-wrap piece.centaur.black {
+    #board.variant-orda .cg-wrap piece.h.black,
+    #board.variant-orda .cg-wrap piece.centaur.black {
       background-image: url('/assets/orda-pieces/bH.svg') !important;
     }
 
     /* a = Knibis/Archer (Knight move + Bishop capture) */
-    .cg-wrap piece.a.white,
-    .cg-wrap piece.archer.white,
-    .cg-wrap piece.knibis.white {
+    #board.variant-orda .cg-wrap piece.a.white,
+    #board.variant-orda .cg-wrap piece.archer.white,
+    #board.variant-orda .cg-wrap piece.knibis.white {
       background-image: url('/assets/orda-pieces/wA.svg') !important;
     }
-    .cg-wrap piece.a.black,
-    .cg-wrap piece.archer.black,
-    .cg-wrap piece.knibis.black {
+    #board.variant-orda .cg-wrap piece.a.black,
+    #board.variant-orda .cg-wrap piece.archer.black,
+    #board.variant-orda .cg-wrap piece.knibis.black {
       background-image: url('/assets/orda-pieces/bA.svg') !important;
     }
 
-    /* l = Kniroo/Lancer (Knight move + Rook capture) */
-    .cg-wrap piece.l.white,
-    .cg-wrap piece.lancer.white,
-    .cg-wrap piece.kniroo.white {
+    /* l = Kniroo/Lancer (Knight move + Rook capture) - conflicts with NoaChess Leaper! */
+    #board.variant-orda .cg-wrap piece.l.white,
+    #board.variant-orda .cg-wrap piece.lancer.white,
+    #board.variant-orda .cg-wrap piece.kniroo.white {
       background-image: url('/assets/orda-pieces/wL.svg') !important;
     }
-    .cg-wrap piece.l.black,
-    .cg-wrap piece.lancer.black,
-    .cg-wrap piece.kniroo.black {
+    #board.variant-orda .cg-wrap piece.l.black,
+    #board.variant-orda .cg-wrap piece.lancer.black,
+    #board.variant-orda .cg-wrap piece.kniroo.black {
       background-image: url('/assets/orda-pieces/bL.svg') !important;
     }
 
     /* y = Silver/Yurt */
-    .cg-wrap piece.y.white,
-    .cg-wrap piece.yurt.white,
-    .cg-wrap piece.silver.white {
+    #board.variant-orda .cg-wrap piece.y.white,
+    #board.variant-orda .cg-wrap piece.yurt.white,
+    #board.variant-orda .cg-wrap piece.silver.white {
       background-image: url('/assets/orda-pieces/wY.svg') !important;
     }
-    .cg-wrap piece.y.black,
-    .cg-wrap piece.yurt.black,
-    .cg-wrap piece.silver.black {
+    #board.variant-orda .cg-wrap piece.y.black,
+    #board.variant-orda .cg-wrap piece.yurt.black,
+    #board.variant-orda .cg-wrap piece.silver.black {
       background-image: url('/assets/orda-pieces/bY.svg') !important;
     }
 
