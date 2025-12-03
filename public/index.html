@@ -335,8 +335,15 @@
     }
 
     /* Piece sizing - make pieces larger and centered */
-    .cg-wrap piece {
-      background-size: 95% !important;
+    /* Default for 8x8 boards */
+    #board.board-8x8 .cg-wrap piece {
+      background-size: 90% !important;
+      background-position: center !important;
+    }
+
+    /* Larger sizing for 6x6 boards (bigger squares) */
+    #board.board-6x6 .cg-wrap piece {
+      background-size: 85% !important;
       background-position: center !important;
     }
 
@@ -355,47 +362,47 @@
     /* h = Centaur/Khan (King+Knight) */
     .cg-wrap piece.h.white,
     .cg-wrap piece.centaur.white {
-      background-image: url('assets/orda-pieces/wH.svg') !important;
+      background-image: url('/assets/orda-pieces/wH.svg') !important;
     }
     .cg-wrap piece.h.black,
     .cg-wrap piece.centaur.black {
-      background-image: url('assets/orda-pieces/bH.svg') !important;
+      background-image: url('/assets/orda-pieces/bH.svg') !important;
     }
 
     /* a = Knibis/Archer (Knight move + Bishop capture) */
     .cg-wrap piece.a.white,
     .cg-wrap piece.archer.white,
     .cg-wrap piece.knibis.white {
-      background-image: url('assets/orda-pieces/wA.svg') !important;
+      background-image: url('/assets/orda-pieces/wA.svg') !important;
     }
     .cg-wrap piece.a.black,
     .cg-wrap piece.archer.black,
     .cg-wrap piece.knibis.black {
-      background-image: url('assets/orda-pieces/bA.svg') !important;
+      background-image: url('/assets/orda-pieces/bA.svg') !important;
     }
 
     /* l = Kniroo/Lancer (Knight move + Rook capture) */
     .cg-wrap piece.l.white,
     .cg-wrap piece.lancer.white,
     .cg-wrap piece.kniroo.white {
-      background-image: url('assets/orda-pieces/wL.svg') !important;
+      background-image: url('/assets/orda-pieces/wL.svg') !important;
     }
     .cg-wrap piece.l.black,
     .cg-wrap piece.lancer.black,
     .cg-wrap piece.kniroo.black {
-      background-image: url('assets/orda-pieces/bL.svg') !important;
+      background-image: url('/assets/orda-pieces/bL.svg') !important;
     }
 
     /* y = Silver/Yurt */
     .cg-wrap piece.y.white,
     .cg-wrap piece.yurt.white,
     .cg-wrap piece.silver.white {
-      background-image: url('assets/orda-pieces/wY.svg') !important;
+      background-image: url('/assets/orda-pieces/wY.svg') !important;
     }
     .cg-wrap piece.y.black,
     .cg-wrap piece.yurt.black,
     .cg-wrap piece.silver.black {
-      background-image: url('assets/orda-pieces/bY.svg') !important;
+      background-image: url('/assets/orda-pieces/bY.svg') !important;
     }
 
     /* Difficulty radio buttons */

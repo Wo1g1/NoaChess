@@ -9619,14 +9619,17 @@ function initGame() {
     },
     dimensions: config.boardSize
   };
-  if (chessground) {
-    // Update existing board
-    chessground.set(boardConfig);
-  } else {
-    // Create new board
-    chessground = Chessground(boardElement, boardConfig);
 
-    // Add event listeners for checkboxes (only once)
+  // Always destroy and recreate chessground to ensure proper rendering
+  // especially when switching between different board sizes
+  const needsEventListeners = !chessground;
+  if (chessground) {
+    chessground.destroy();
+  }
+  chessground = Chessground(boardElement, boardConfig);
+
+  // Add event listeners for checkboxes (only once)
+  if (needsEventListeners) {
     document.getElementById('playWhite').addEventListener('change', updateMovableColor);
     document.getElementById('playBlack').addEventListener('change', updateMovableColor);
   }
@@ -10345,6 +10348,12 @@ window.newGame = function () {
   currentEvaluation = 0; // Reset evaluation
   positionHistory = []; // Reset position history
   resetCapturedPieces(); // Reset captured pieces
+
+  // Destroy chessground to force fresh rendering
+  if (chessground) {
+    chessground.destroy();
+    chessground = null;
+  }
   initGame();
 };
 window.flipBoard = function () {
