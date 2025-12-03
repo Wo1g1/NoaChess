@@ -151,8 +151,18 @@ function loadVariant(variantKey) {
 
       // Re-initialize Stockfish with new variant
       if (stockfishReady && stockfishEngine) {
-        stockfishEngine.postMessage('setoption name UCI_Variant value ' + config.name);
-        stockfishEngine.postMessage('isready');
+        // Load new variant configuration into Stockfish
+        window.prompt = function() {
+          return variantsIni + '\nEOF';
+        };
+        stockfishEngine.postMessage('load <<EOF');
+
+        // Wait a bit for variant to load, then set it
+        setTimeout(() => {
+          stockfishEngine.postMessage('setoption name UCI_Variant value ' + config.name);
+          stockfishEngine.postMessage('ucinewgame');
+          stockfishEngine.postMessage('isready');
+        }, 100);
       }
     })
     .catch(error => {
