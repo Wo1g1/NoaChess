@@ -7,6 +7,23 @@ let board;
 let game;
 let chessground;
 
+// Current variant configuration
+let currentVariant = 'noachess';
+const variantConfigs = {
+  noachess: {
+    name: 'NoaChess',
+    file: './noachess.ini',
+    dimensions: { width: 6, height: 6 },
+    startFen: 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1'
+  },
+  khasar: {
+    name: 'Khasar Chess',
+    file: './khasar.ini',
+    dimensions: { width: 9, height: 9 },
+    startFen: 'lhaykyahl/ppppppppp/9/9/9/9/PPPPPPPPP/9/LHAYKYAHL w - - 0 1'
+  }
+};
+
 // Fairy-Stockfish engine
 let stockfishEngine = null;
 let stockfishReady = false;
@@ -73,7 +90,7 @@ function initStockfishEngine() {
         stockfishEngine.postMessage('load <<EOF');
         stockfishEngine.postMessage('uci');
       } else if (line.includes('uciok')) {
-        stockfishEngine.postMessage('setoption name UCI_Variant value noachess');
+        stockfishEngine.postMessage(`setoption name UCI_Variant value ${currentVariant}`);
         stockfishEngine.postMessage('isready');
       } else if (line.includes('readyok')) {
         stockfishReady = true;
@@ -88,31 +105,48 @@ function initStockfishEngine() {
   });
 }
 
+// Load variant configuration
+async function loadVariant(variantName) {
+  currentVariant = variantName;
+  const config = variantConfigs[variantName];
+
+  console.log(`Loading ${config.name}...`);
+
+  try {
+    const response = await fetch(config.file);
+    const ini = await response.text();
+    variantsIni = ini;
+
+    console.log(`${config.name} INI content:`, ini);
+    ffish.loadVariantConfig(ini);
+    console.log(`${config.name} variant loaded!`);
+    console.log('Available variants:', ffish.variants());
+
+    // Reinitialize Stockfish with new variant
+    if (stockfishEngine && stockfishReady) {
+      stockfishReady = false;
+      stockfishEngine.postMessage(`setoption name UCI_Variant value ${currentVariant}`);
+      stockfishEngine.postMessage('isready');
+    }
+
+    // Initialize/reinitialize game
+    initGame();
+  } catch (error) {
+    console.error(`Failed to load ${config.name} variant:`, error);
+    updateStatus('Error loading game. Please refresh.');
+  }
+}
+
 // Initialize Fairy-Stockfish
 new Module().then((loadedModule) => {
   ffish = loadedModule;
   console.log('ffish-es6 loaded!');
 
-  // Load NoaChess variant
-  fetch('./noachess.ini')
-    .then(response => response.text())
-    .then(ini => {
-      variantsIni = ini;
-      console.log('NoaChess INI content:', ini);
-      ffish.loadVariantConfig(ini);
-      console.log('NoaChess variant loaded!');
-      console.log('Available variants:', ffish.variants());
-
-      // Initialize game
-      initGame();
-
-      // Initialize Stockfish engine
-      initStockfishEngine();
-    })
-    .catch(error => {
-      console.error('Failed to load NoaChess variant:', error);
-      updateStatus('Error loading game. Please refresh.');
-    });
+  // Load default variant
+  loadVariant(currentVariant).then(() => {
+    // Initialize Stockfish engine
+    initStockfishEngine();
+  });
 });
 
 function getMovableColor() {
@@ -143,8 +177,11 @@ function initGame() {
     stockfishEngine.postMessage('stop');
   }
 
+  // Get current variant configuration
+  const config = variantConfigs[currentVariant];
+
   // Create new game
-  game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
+  game = new ffish.Board(currentVariant, config.startFen);
   console.log('Game initialized with variant:', game.variant());
   console.log('Legal moves from start:', game.legalMoves());
 
@@ -153,30 +190,46 @@ function initGame() {
   gameSaved = false; // Reset game saved flag
   recordPosition();
 
-  // Initialize chessground
+  // Reset captured pieces
+  capturedByWhite = [];
+  capturedByBlack = [];
+  updateCapturedPieces();
+
+  // Initialize or update chessground
   const boardElement = document.getElementById('board');
-  chessground = Chessground(boardElement, {
-    fen: game.fen(),
-    coordinates: true,
-    movable: {
-      free: false,
-      color: getMovableColor(),
-      dests: getLegalMoves()
-    },
-    events: {
-      move: onMove
-    },
-    dimensions: {
-      width: 6,
-      height: 6
-    }
-  });
+  if (chessground) {
+    // Update existing board
+    chessground.set({
+      fen: game.fen(),
+      movable: {
+        free: false,
+        color: getMovableColor(),
+        dests: getLegalMoves()
+      },
+      dimensions: config.dimensions
+    });
+  } else {
+    // Create new board
+    chessground = Chessground(boardElement, {
+      fen: game.fen(),
+      coordinates: true,
+      movable: {
+        free: false,
+        color: getMovableColor(),
+        dests: getLegalMoves()
+      },
+      events: {
+        move: onMove
+      },
+      dimensions: config.dimensions
+    });
+
+    // Add event listeners for checkboxes (only once)
+    document.getElementById('playWhite').addEventListener('change', updateMovableColor);
+    document.getElementById('playBlack').addEventListener('change', updateMovableColor);
+  }
 
   updateStatus('White to move');
-
-  // Add event listeners for checkboxes
-  document.getElementById('playWhite').addEventListener('change', updateMovableColor);
-  document.getElementById('playBlack').addEventListener('change', updateMovableColor);
 }
 
 function getLegalMoves() {
@@ -965,7 +1018,7 @@ window.flipBoard = function() {
 // Get pieces from FEN string
 function getPiecesFromFen(fen) {
   const pieces = {};
-  const pieceTypes = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'k', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'K'];
+  const pieceTypes = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'h', 'a', 'y', 'k', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'H', 'A', 'Y', 'K'];
 
   pieceTypes.forEach(p => pieces[p] = 0);
 
@@ -984,7 +1037,7 @@ function detectCapture(fenBefore, fenAfter) {
   const piecesAfter = getPiecesFromFen(fenAfter);
 
   // Check for missing pieces
-  const allPieces = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'P', 'N', 'B', 'R', 'Q', 'L', 'G'];
+  const allPieces = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'h', 'a', 'y', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'H', 'A', 'Y'];
 
   for (const piece of allPieces) {
     if (piecesAfter[piece] < piecesBefore[piece]) {
@@ -1049,8 +1102,11 @@ function getPieceSymbol(piece, color) {
     'b': color === 'white' ? '♗' : '♝',
     'n': color === 'white' ? '♘' : '♞',
     'p': color === 'white' ? '♙' : '♟',
-    'l': color === 'white' ? '⚔' : '⚔',  // Leaper uses dagger symbol
-    'g': color === 'white' ? '★' : '★'   // General uses star symbol
+    'l': color === 'white' ? '⚔' : '⚔',  // Lancer/Leaper uses dagger symbol
+    'g': color === 'white' ? '★' : '★',  // General uses star symbol
+    'h': color === 'white' ? '🐎' : '🐴', // Keshik (Wildebeest) - horse emoji
+    'a': color === 'white' ? '🏹' : '🏹', // Archer - bow and arrow emoji
+    'y': color === 'white' ? '⛺' : '⛺'  // Yurt - tent emoji
   };
   return symbols[piece] || piece;
 }
@@ -1091,3 +1147,15 @@ window.undoMove = function() {
     updateGameStatus();
   }
 }
+
+// Variant selector event listener
+document.addEventListener('DOMContentLoaded', () => {
+  const variantRadios = document.querySelectorAll('input[name="variant"]');
+  variantRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const selectedVariant = e.target.value;
+      console.log('Variant changed to:', selectedVariant);
+      loadVariant(selectedVariant);
+    });
+  });
+});

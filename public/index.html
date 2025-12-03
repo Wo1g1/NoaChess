@@ -196,6 +196,47 @@
       margin-left: 5px;
     }
 
+    .variant-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .variant-selector label {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .variant-selector label:hover {
+      background: #f0f0f0;
+      border-color: #8B4513;
+    }
+
+    body.dark .variant-selector label {
+      border-color: #555;
+    }
+
+    body.dark .variant-selector label:hover {
+      background: #333;
+      border-color: #8B4513;
+    }
+
+    .variant-selector input[type="radio"] {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .variant-selector label:has(input:checked) {
+      background: #8B4513;
+      color: white;
+      border-color: #8B4513;
+    }
+
     #status {
       padding: 10px;
       background: #e8f4f8;
@@ -518,6 +559,20 @@
     </div>
 
     <div class="controls">
+      <div class="section">
+        <h2>Chess Variant</h2>
+        <div class="variant-selector">
+          <label>
+            <input type="radio" name="variant" value="noachess" checked>
+            NoaChess (6×6)
+          </label>
+          <label>
+            <input type="radio" name="variant" value="khasar">
+            Khasar Chess (9×9)
+          </label>
+        </div>
+      </div>
+
       <div class="section">
         <h2>Game Status</h2>
         <div id="status">Ready to play!</div>
