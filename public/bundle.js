@@ -9371,6 +9371,46 @@ let board;
 let game;
 let chessground;
 
+// Current selected variant
+let currentVariant = 'noachess';
+
+// Variant configurations
+const VARIANT_CONFIG = {
+  chess: {
+    name: 'chess',
+    displayName: 'Original Chess',
+    subtitle: 'Classic 8×8 chess',
+    iniFile: 'chess.ini',
+    startFen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    boardSize: {
+      width: 8,
+      height: 8
+    }
+  },
+  noachess: {
+    name: 'noachess',
+    displayName: 'NoaChess',
+    subtitle: 'A unique 6×6 chess variant',
+    iniFile: 'noachess.ini',
+    startFen: 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1',
+    boardSize: {
+      width: 6,
+      height: 6
+    }
+  },
+  orda: {
+    name: 'orda',
+    displayName: 'Orda Chess',
+    subtitle: 'Asymmetric 8×8 variant (Kingdom vs Horde)',
+    iniFile: 'orda.ini',
+    startFen: 'lhaykahl/8/pppppppp/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1',
+    boardSize: {
+      width: 8,
+      height: 8
+    }
+  }
+};
+
 // Fairy-Stockfish engine
 let stockfishEngine = null;
 let stockfishReady = false;
@@ -9394,6 +9434,15 @@ let positionHistory = [];
 
 // Game ID for race condition protection
 let currentGameId = 0;
+
+// Current Stockfish listener (to remove before adding new one)
+let currentSearchListener = null;
+
+// Search sequence number to prevent stale results
+let searchSequence = 0;
+
+// Flag to prevent saving the same game multiple times
+let gameSaved = false;
 
 // Initialize Fairy-Stockfish engine
 function initStockfishEngine() {
@@ -9427,7 +9476,10 @@ function initStockfishEngine() {
         stockfishEngine.postMessage('load <<EOF');
         stockfishEngine.postMessage('uci');
       } else if (line.includes('uciok')) {
-        stockfishEngine.postMessage('setoption name UCI_Variant value noachess');
+        const config = VARIANT_CONFIG[currentVariant];
+        if (config) {
+          stockfishEngine.postMessage('setoption name UCI_Variant value ' + config.name);
+        }
         stockfishEngine.postMessage('isready');
       } else if (line.includes('readyok')) {
         stockfishReady = true;
@@ -9442,28 +9494,60 @@ function initStockfishEngine() {
   });
 }
 
+// Load a specific variant
+function loadVariant(variantKey) {
+  const config = VARIANT_CONFIG[variantKey];
+  if (!config) {
+    console.error('Unknown variant:', variantKey);
+    return;
+  }
+  console.log(`Loading variant: ${config.displayName}`);
+  fetch('./' + config.iniFile).then(response => response.text()).then(ini => {
+    variantsIni = ini;
+    console.log(`${config.displayName} INI content:`, ini);
+    ffish.loadVariantConfig(ini);
+    console.log(`${config.displayName} variant loaded!`);
+    console.log('Available variants:', ffish.variants());
+
+    // Update UI
+    document.getElementById('gameTitle').textContent = config.displayName;
+    document.getElementById('gameSubtitle').textContent = config.subtitle;
+
+    // Initialize game
+    currentVariant = variantKey;
+    initGame();
+
+    // Re-initialize Stockfish with new variant
+    if (stockfishReady && stockfishEngine) {
+      // Load new variant configuration into Stockfish
+      window.prompt = function () {
+        return variantsIni + '\nEOF';
+      };
+      stockfishEngine.postMessage('load <<EOF');
+
+      // Wait a bit for variant to load, then set it
+      setTimeout(() => {
+        stockfishEngine.postMessage('setoption name UCI_Variant value ' + config.name);
+        stockfishEngine.postMessage('ucinewgame');
+        stockfishEngine.postMessage('isready');
+      }, 100);
+    }
+  }).catch(error => {
+    console.error(`Failed to load ${config.displayName} variant:`, error);
+    updateStatus('Error loading game. Please refresh.');
+  });
+}
+
 // Initialize Fairy-Stockfish
 new _ffishEs.default().then(loadedModule => {
   ffish = loadedModule;
   console.log('ffish-es6 loaded!');
 
-  // Load NoaChess variant
-  fetch('./noachess.ini').then(response => response.text()).then(ini => {
-    variantsIni = ini;
-    console.log('NoaChess INI content:', ini);
-    ffish.loadVariantConfig(ini);
-    console.log('NoaChess variant loaded!');
-    console.log('Available variants:', ffish.variants());
+  // Load initial variant (NoaChess by default)
+  loadVariant(currentVariant);
 
-    // Initialize game
-    initGame();
-
-    // Initialize Stockfish engine
-    initStockfishEngine();
-  }).catch(error => {
-    console.error('Failed to load NoaChess variant:', error);
-    updateStatus('Error loading game. Please refresh.');
-  });
+  // Initialize Stockfish engine
+  initStockfishEngine();
 });
 function getMovableColor() {
   const playWhite = document.getElementById('playWhite').checked;
@@ -9485,18 +9569,45 @@ function initGame() {
   currentGameId++;
   console.log('Starting game ID:', currentGameId);
 
-  // Create new game
-  game = new ffish.Board('noachess', 'lbqknr/pppppp/6/6/PPPPPP/LBQKNR w - - 0 1');
+  // Clean up any existing Stockfish listener
+  if (currentSearchListener && stockfishEngine) {
+    stockfishEngine.removeMessageListener(currentSearchListener);
+    currentSearchListener = null;
+    stockfishEngine.postMessage('stop');
+  }
+
+  // Get current variant config
+  const config = VARIANT_CONFIG[currentVariant];
+  if (!config) {
+    console.error('Invalid variant config:', currentVariant);
+    return;
+  }
+
+  // Create new game with variant config
+  game = new ffish.Board(config.name, config.startFen);
   console.log('Game initialized with variant:', game.variant());
   console.log('Legal moves from start:', game.legalMoves());
 
   // Initialize position history and record initial position
   positionHistory = [];
+  gameSaved = false; // Reset game saved flag
   recordPosition();
 
-  // Initialize chessground
+  // Initialize or update chessground
   const boardElement = document.getElementById('board');
-  chessground = Chessground(boardElement, {
+
+  // Update board size and variant classes
+  boardElement.className = '';
+  boardElement.classList.add(`board-${config.boardSize.width}x${config.boardSize.height}`);
+  boardElement.classList.add(`variant-${currentVariant}`);
+
+  // Update captured pieces container height to match board
+  const capturedContainer = document.querySelector('.captured-container');
+  if (capturedContainer) {
+    const boardSize = config.boardSize.width === 8 ? 640 : 600;
+    capturedContainer.style.height = `${boardSize}px`;
+  }
+  const boardConfig = {
     fen: game.fen(),
     coordinates: true,
     movable: {
@@ -9507,16 +9618,23 @@ function initGame() {
     events: {
       move: onMove
     },
-    dimensions: {
-      width: 6,
-      height: 6
-    }
-  });
-  updateStatus('White to move');
+    dimensions: config.boardSize
+  };
 
-  // Add event listeners for checkboxes
-  document.getElementById('playWhite').addEventListener('change', updateMovableColor);
-  document.getElementById('playBlack').addEventListener('change', updateMovableColor);
+  // Always destroy and recreate chessground to ensure proper rendering
+  // especially when switching between different board sizes
+  const needsEventListeners = !chessground;
+  if (chessground) {
+    chessground.destroy();
+  }
+  chessground = Chessground(boardElement, boardConfig);
+
+  // Add event listeners for checkboxes (only once)
+  if (needsEventListeners) {
+    document.getElementById('playWhite').addEventListener('change', updateMovableColor);
+    document.getElementById('playBlack').addEventListener('change', updateMovableColor);
+  }
+  updateStatus('White to move');
 }
 function getLegalMoves() {
   const dests = new Map();
@@ -9643,13 +9761,29 @@ function makeAIMove() {
     let bestMove = null;
     let moveProcessed = false; // Flag to prevent duplicate processing
     const gameIdAtStart = currentGameId; // Capture game ID for race condition check
+    searchSequence++; // Increment search sequence
+    const searchSeqAtStart = searchSequence;
+    console.log(`Starting search #${searchSeqAtStart} for game #${gameIdAtStart}`);
+
+    // Remove previous listener if exists (prevent multiple active listeners)
+    if (currentSearchListener) {
+      console.log('Removing previous search listener');
+      stockfishEngine.removeMessageListener(currentSearchListener);
+      currentSearchListener = null;
+    }
 
     // Temporary listener for this search
     let finalEvaluation = 0;
     const searchListener = line => {
-      // Ignore results from previous games or if already processed
-      if (gameIdAtStart !== currentGameId || moveProcessed) {
+      // Ignore results from previous games/searches or if already processed
+      if (gameIdAtStart !== currentGameId || searchSeqAtStart !== searchSequence || moveProcessed) {
+        if (line.startsWith('bestmove')) {
+          console.log(`Ignoring stale bestmove: search #${searchSeqAtStart} (current: #${searchSequence}), game #${gameIdAtStart} (current: #${currentGameId}), processed: ${moveProcessed}`);
+        }
         stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
         return;
       }
 
@@ -9674,6 +9808,9 @@ function makeAIMove() {
         // Immediately mark as processed and remove listener to prevent duplicates
         moveProcessed = true;
         stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
 
         // Double check game ID before processing
         if (gameIdAtStart !== currentGameId) {
@@ -9681,6 +9818,7 @@ function makeAIMove() {
         }
         const parts = line.split(' ');
         bestMove = parts[1];
+        console.log(`Processing bestmove ${bestMove} from search #${searchSeqAtStart}`);
         if (bestMove && bestMove !== '(none)') {
           const fenBefore = game.fen();
           game.push(bestMove);
@@ -9711,7 +9849,13 @@ function makeAIMove() {
         }
       }
     };
+
+    // Store and add the listener
+    currentSearchListener = searchListener;
     stockfishEngine.addMessageListener(searchListener);
+
+    // Stop any previous search before starting new one
+    stockfishEngine.postMessage('stop');
 
     // Send search command
     stockfishEngine.postMessage('position fen ' + game.fen());
@@ -9719,9 +9863,12 @@ function makeAIMove() {
 
     // Fallback timeout
     setTimeout(() => {
-      if (!bestMove) {
+      if (!bestMove && !moveProcessed) {
         console.log('Stockfish timeout, using fallback');
         stockfishEngine.removeMessageListener(searchListener);
+        if (currentSearchListener === searchListener) {
+          currentSearchListener = null;
+        }
         makeFallbackMove();
       }
     }, 30000); // 30 second timeout
@@ -9862,13 +10009,14 @@ function evaluatePosition() {
   }
 
   // Simple material evaluation
+  // Adjusted for new piece movements (close-combat focused)
   const pieceValues = {
     'p': 100,
     'n': 320,
     'b': 330,
-    'r': 500,
-    'q': 900,
-    'l': 350,
+    'r': 280,
+    'q': 450,
+    'l': 240,
     'g': 150,
     'k': 0
   };
@@ -9941,8 +10089,11 @@ function updateGameStatus() {
       }
     });
 
-    // Save game record
-    saveGameRecord(winner);
+    // Save game record (only once per game)
+    if (!gameSaved) {
+      gameSaved = true;
+      saveGameRecord(winner);
+    }
 
     // Auto-play next game if enabled
     if (autoPlayMode && autoPlayCount < autoPlayTarget) {
@@ -10198,6 +10349,12 @@ window.newGame = function () {
   currentEvaluation = 0; // Reset evaluation
   positionHistory = []; // Reset position history
   resetCapturedPieces(); // Reset captured pieces
+
+  // Destroy chessground to force fresh rendering
+  if (chessground) {
+    chessground.destroy();
+    chessground = null;
+  }
   initGame();
 };
 window.flipBoard = function () {
@@ -10331,6 +10488,44 @@ window.undoMove = function () {
     });
     updateGameStatus();
   }
+};
+
+// Select and load a chess variant
+window.selectVariant = function (variantKey) {
+  if (!VARIANT_CONFIG[variantKey]) {
+    console.error('Unknown variant:', variantKey);
+    return;
+  }
+
+  // Update select dropdown
+  const select = document.getElementById('variantSelect');
+  if (select) {
+    select.value = variantKey;
+  }
+
+  // Clean up current game
+  if (game) {
+    game.delete();
+  }
+  currentGameMoves = [];
+  currentEvaluation = 0;
+  positionHistory = [];
+  resetCapturedPieces();
+
+  // Stop any autoplay
+  if (autoPlayMode) {
+    autoPlayMode = false;
+    updateAutoPlayUI();
+  }
+
+  // Destroy existing chessground to force recreation
+  if (chessground) {
+    chessground.destroy();
+    chessground = null;
+  }
+
+  // Load new variant
+  loadVariant(variantKey);
 };
 
 },{"chessgroundx":5,"ffish-es6":22}]},{},[24]);
