@@ -9557,7 +9557,7 @@ function initGame() {
   // Reset captured pieces
   capturedByWhite = [];
   capturedByBlack = [];
-  updateCapturedPieces();
+  updateCapturedPiecesDisplay();
 
   // Initialize or update chessground
   const boardElement = document.getElementById('board');
