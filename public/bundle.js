@@ -9508,8 +9508,9 @@ new _ffishEs.default().then(loadedModule => {
   ffish = loadedModule;
   console.log('ffish-es6 loaded!');
 
-  // Load default variant
-  loadVariant(currentVariant).then(() => {
+  // Load saved or default variant
+  const savedVariant = localStorage.getItem('selectedVariant') || currentVariant;
+  loadVariant(savedVariant).then(() => {
     // Initialize Stockfish engine
     initStockfishEngine();
   });
@@ -9561,6 +9562,11 @@ function initGame() {
 
   // Initialize or update chessground
   const boardElement = document.getElementById('board');
+
+  // Update variant class on wrapper
+  const wrapper = boardElement.querySelector('.cg-wrap') || boardElement;
+  wrapper.className = wrapper.className.replace(/variant-\w+/g, '').trim();
+  wrapper.classList.add(`variant-${currentVariant}`);
   if (chessground) {
     // Update existing board
     chessground.set({
@@ -9587,6 +9593,12 @@ function initGame() {
       },
       dimensions: config.dimensions
     });
+
+    // Add variant class to wrapper after creation
+    const wrapperAfter = boardElement.querySelector('.cg-wrap');
+    if (wrapperAfter) {
+      wrapperAfter.classList.add(`variant-${currentVariant}`);
+    }
 
     // Add event listeners for checkboxes (only once)
     document.getElementById('playWhite').addEventListener('change', updateMovableColor);
@@ -10452,10 +10464,19 @@ window.undoMove = function () {
 document.addEventListener('DOMContentLoaded', () => {
   const variantSelect = document.getElementById('variantSelect');
   if (variantSelect) {
+    // Restore saved variant selection
+    const savedVariant = localStorage.getItem('selectedVariant');
+    if (savedVariant && savedVariant !== currentVariant) {
+      variantSelect.value = savedVariant;
+      currentVariant = savedVariant;
+    }
     variantSelect.addEventListener('change', e => {
       const selectedVariant = e.target.value;
       console.log('Variant changed to:', selectedVariant);
-      loadVariant(selectedVariant);
+
+      // Save selection and reload page
+      localStorage.setItem('selectedVariant', selectedVariant);
+      location.reload();
     });
   }
 });
