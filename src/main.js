@@ -199,11 +199,6 @@ function initGame() {
   // Initialize or update chessground
   const boardElement = document.getElementById('board');
 
-  // Update variant class on wrapper
-  const wrapper = boardElement.querySelector('.cg-wrap') || boardElement;
-  wrapper.className = wrapper.className.replace(/variant-\w+/g, '').trim();
-  wrapper.classList.add(`variant-${currentVariant}`);
-
   if (chessground) {
     // Update existing board
     chessground.set({
@@ -231,16 +226,22 @@ function initGame() {
       dimensions: config.dimensions
     });
 
-    // Add variant class to wrapper after creation
-    const wrapperAfter = boardElement.querySelector('.cg-wrap');
-    if (wrapperAfter) {
-      wrapperAfter.classList.add(`variant-${currentVariant}`);
-    }
-
     // Add event listeners for checkboxes (only once)
     document.getElementById('playWhite').addEventListener('change', updateMovableColor);
     document.getElementById('playBlack').addEventListener('change', updateMovableColor);
   }
+
+  // Update variant class on wrapper AFTER chessground is created/updated
+  setTimeout(() => {
+    const wrapper = boardElement.querySelector('.cg-wrap');
+    if (wrapper) {
+      // Remove old variant classes
+      wrapper.className = wrapper.className.replace(/variant-\w+/g, '').trim();
+      // Add new variant class
+      wrapper.classList.add(`variant-${currentVariant}`);
+      console.log('Variant class added:', `variant-${currentVariant}`);
+    }
+  }, 0);
 
   updateStatus('White to move');
 }
