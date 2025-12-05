@@ -321,61 +321,91 @@
 
     /* Piece sizing - ensure pieces fit squares properly */
     .cg-wrap piece {
-      background-size: cover !important;
+      background-size: contain !important;
       background-repeat: no-repeat !important;
       background-position: center !important;
     }
 
-    /* Khasar Chess pieces - Higher specificity to override defaults */
-    /* Pawn uses default chess pawn */
+    /* Khasar Chess pieces - Using much more specific selectors */
+    /* Black Pawn - YELLOW colored (bP.svg) */
+    #board.variant-khasar .cg-wrap piece.pawn.black,
+    #board.variant-khasar .cg-wrap piece.p-piece.black,
+    #board.variant-khasar .cg-wrap piece[class*="pawn"][class*="black"],
+    #board.variant-khasar piece.p.black {
+      background-image: url('/assets/khasar/bP.svg') !important;
+    }
+
+    /* White Pawn - uses default */
 
     /* King (Khan) */
-    #board.variant-khasar .cg-wrap piece.k.white,
-    #board.variant-khasar .cg-wrap piece.king.white {
+    #board.variant-khasar .cg-wrap piece.king.white,
+    #board.variant-khasar .cg-wrap piece.k-piece.white,
+    #board.variant-khasar .cg-wrap piece[class*="king"][class*="white"],
+    #board.variant-khasar piece.k.white {
       background-image: url('/assets/khasar/wK.svg') !important;
     }
-    #board.variant-khasar .cg-wrap piece.k.black,
-    #board.variant-khasar .cg-wrap piece.king.black {
+    #board.variant-khasar .cg-wrap piece.king.black,
+    #board.variant-khasar .cg-wrap piece.k-piece.black,
+    #board.variant-khasar .cg-wrap piece[class*="king"][class*="black"],
+    #board.variant-khasar piece.k.black {
       background-image: url('/assets/khasar/bK.svg') !important;
     }
 
-    /* Lancer */
-    #board.variant-khasar .cg-wrap piece.l.white,
-    #board.variant-khasar .cg-wrap piece.lancer.white {
+    /* Lancer - Override Leaper */
+    #board.variant-khasar .cg-wrap piece.lancer.white,
+    #board.variant-khasar .cg-wrap piece.l-piece.white,
+    #board.variant-khasar .cg-wrap piece.leaper.white,
+    #board.variant-khasar .cg-wrap piece[class*="l"][class*="white"],
+    #board.variant-khasar piece.l.white {
       background-image: url('/assets/khasar/wL.svg') !important;
     }
-    #board.variant-khasar .cg-wrap piece.l.black,
-    #board.variant-khasar .cg-wrap piece.lancer.black {
+    #board.variant-khasar .cg-wrap piece.lancer.black,
+    #board.variant-khasar .cg-wrap piece.l-piece.black,
+    #board.variant-khasar .cg-wrap piece.leaper.black,
+    #board.variant-khasar .cg-wrap piece[class*="l"][class*="black"],
+    #board.variant-khasar piece.l.black {
       background-image: url('/assets/khasar/bL.svg') !important;
     }
 
     /* Kheshig */
-    #board.variant-khasar .cg-wrap piece.h.white,
-    #board.variant-khasar .cg-wrap piece.kheshig.white {
+    #board.variant-khasar .cg-wrap piece.kheshig.white,
+    #board.variant-khasar .cg-wrap piece.h-piece.white,
+    #board.variant-khasar .cg-wrap piece[class*="h"][class*="white"],
+    #board.variant-khasar piece.h.white {
       background-image: url('/assets/khasar/wH.svg') !important;
     }
-    #board.variant-khasar .cg-wrap piece.h.black,
-    #board.variant-khasar .cg-wrap piece.kheshig.black {
+    #board.variant-khasar .cg-wrap piece.kheshig.black,
+    #board.variant-khasar .cg-wrap piece.h-piece.black,
+    #board.variant-khasar .cg-wrap piece[class*="h"][class*="black"],
+    #board.variant-khasar piece.h.black {
       background-image: url('/assets/khasar/bH.svg') !important;
     }
 
     /* Archer */
-    #board.variant-khasar .cg-wrap piece.a.white,
-    #board.variant-khasar .cg-wrap piece.archer.white {
+    #board.variant-khasar .cg-wrap piece.archer.white,
+    #board.variant-khasar .cg-wrap piece.a-piece.white,
+    #board.variant-khasar .cg-wrap piece[class*="a"][class*="white"],
+    #board.variant-khasar piece.a.white {
       background-image: url('/assets/khasar/wA.svg') !important;
     }
-    #board.variant-khasar .cg-wrap piece.a.black,
-    #board.variant-khasar .cg-wrap piece.archer.black {
+    #board.variant-khasar .cg-wrap piece.archer.black,
+    #board.variant-khasar .cg-wrap piece.a-piece.black,
+    #board.variant-khasar .cg-wrap piece[class*="a"][class*="black"],
+    #board.variant-khasar piece.a.black {
       background-image: url('/assets/khasar/bA.svg') !important;
     }
 
     /* Yurt */
-    #board.variant-khasar .cg-wrap piece.y.white,
-    #board.variant-khasar .cg-wrap piece.yurt.white {
+    #board.variant-khasar .cg-wrap piece.yurt.white,
+    #board.variant-khasar .cg-wrap piece.y-piece.white,
+    #board.variant-khasar .cg-wrap piece[class*="y"][class*="white"],
+    #board.variant-khasar piece.y.white {
       background-image: url('/assets/khasar/wY.svg') !important;
     }
-    #board.variant-khasar .cg-wrap piece.y.black,
-    #board.variant-khasar .cg-wrap piece.yurt.black {
+    #board.variant-khasar .cg-wrap piece.yurt.black,
+    #board.variant-khasar .cg-wrap piece.y-piece.black,
+    #board.variant-khasar .cg-wrap piece[class*="y"][class*="black"],
+    #board.variant-khasar piece.y.black {
       background-image: url('/assets/khasar/bY.svg') !important;
     }
 
