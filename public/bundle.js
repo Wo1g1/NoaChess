@@ -9635,6 +9635,71 @@ function updateMovableColor() {
     updateGameStatus();
   }
 }
+function executeMove(actualMove) {
+  console.log('Executing move:', actualMove);
+  const fenBefore = game.fen();
+  game.push(actualMove);
+  const fenAfter = game.fen();
+  currentGameMoves.push(actualMove); // Record move
+
+  // Detect and record capture
+  const capturedPiece = detectCapture(fenBefore, fenAfter);
+  recordCapture(capturedPiece);
+
+  // Record position for repetition detection
+  recordPosition();
+  const turnColor = game.turn() ? 'white' : 'black';
+  const movableColor = getMovableColor();
+  chessground.set({
+    fen: game.fen(),
+    turnColor: turnColor,
+    movable: {
+      color: movableColor,
+      dests: getLegalMoves()
+    }
+  });
+  updateGameStatus();
+
+  // AI move
+  if (shouldAIMove()) {
+    setTimeout(makeAIMove, 300);
+  }
+}
+function showPromotionDialog(matchingMoves, callback) {
+  // Extract promotion pieces from moves (e.g., "e7e9l" -> "l")
+  const promotionPieces = matchingMoves.map(m => m.slice(-1));
+
+  // Create promotion dialog
+  const dialog = document.createElement('div');
+  dialog.id = 'promotion-dialog';
+  dialog.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.3);';
+  const title = document.createElement('h3');
+  title.textContent = 'Select Promotion Piece';
+  title.style.marginTop = '0';
+  dialog.appendChild(title);
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.cssText = 'display: flex; gap: 10px; justify-content: center;';
+  const pieceNames = {
+    l: 'Lancer',
+    a: 'Archer',
+    h: 'Kheshig',
+    g: 'General'
+  };
+  promotionPieces.forEach((piece, index) => {
+    const button = document.createElement('button');
+    button.textContent = pieceNames[piece] || piece.toUpperCase();
+    button.style.cssText = 'padding: 10px 20px; font-size: 16px; cursor: pointer; border: 1px solid #333; border-radius: 4px; background: #f0f0f0;';
+    button.onmouseover = () => button.style.background = '#e0e0e0';
+    button.onmouseout = () => button.style.background = '#f0f0f0';
+    button.onclick = () => {
+      document.body.removeChild(dialog);
+      callback(matchingMoves[index]);
+    };
+    buttonContainer.appendChild(button);
+  });
+  dialog.appendChild(buttonContainer);
+  document.body.appendChild(dialog);
+}
 function onMove(from, to) {
   let move = from + to;
 
@@ -9652,42 +9717,21 @@ function onMove(from, to) {
   } else {
     // Try to find a move that starts with our move (promotion case)
     const matchingMoves = legalMoves.filter(m => m.startsWith(move));
-    if (matchingMoves.length > 0) {
-      actualMove = matchingMoves[0]; // Take first matching (should be promotion)
+    if (matchingMoves.length > 1) {
+      // Multiple promotion options - show selection dialog
+      showPromotionDialog(matchingMoves, selectedMove => {
+        executeMove(selectedMove);
+      });
+      return; // Exit early, executeMove will be called after selection
+    } else if (matchingMoves.length === 1) {
+      actualMove = matchingMoves[0];
       console.log('Found promotion move:', actualMove);
     }
   }
 
   // Check if move is legal
   if (actualMove && legalMoves.includes(actualMove)) {
-    console.log('Executing move:', actualMove);
-    const fenBefore = game.fen();
-    game.push(actualMove);
-    const fenAfter = game.fen();
-    currentGameMoves.push(actualMove); // Record move
-
-    // Detect and record capture
-    const capturedPiece = detectCapture(fenBefore, fenAfter);
-    recordCapture(capturedPiece);
-
-    // Record position for repetition detection
-    recordPosition();
-    const turnColor = game.turn() ? 'white' : 'black';
-    const movableColor = getMovableColor();
-    chessground.set({
-      fen: game.fen(),
-      turnColor: turnColor,
-      movable: {
-        color: movableColor,
-        dests: getLegalMoves()
-      }
-    });
-    updateGameStatus();
-
-    // AI move
-    if (shouldAIMove()) {
-      setTimeout(makeAIMove, 300);
-    }
+    executeMove(actualMove);
   } else {
     // Illegal move, reset position
     console.log('Illegal move:', move);
