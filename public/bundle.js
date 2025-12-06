@@ -9390,7 +9390,7 @@ const variantConfigs = {
       width: 9,
       height: 9
     },
-    startFen: 'lhaykyahl/ppppppppp/9/9/9/9/PPPPPPPPP/9/LHAYKYAHL w - - 0 1'
+    startFen: 'lhaykyahl/9/ppppppppp/9/9/9/PPPPPPPPP/9/LHAYKYAHL w - - 0 1'
   }
 };
 
