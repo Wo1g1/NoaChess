@@ -20,7 +20,7 @@ const variantConfigs = {
     name: 'Khasar Chess',
     file: './khasar.ini',
     dimensions: { width: 9, height: 9 },
-    startFen: 'lwaykyawl/9/ppppppppp/9/9/9/PPPPPPPPP/9/LWAYKYWL w - - 0 1'
+    startFen: 'lwaykyawl/9/ppppppppp/9/9/9/PPPPPPPPP/9/LWAYKYAWL w - - 0 1'
   }
 };
 
