@@ -20,7 +20,7 @@ const variantConfigs = {
     name: 'Khasar Chess',
     file: './khasar.ini',
     dimensions: { width: 9, height: 9 },
-    startFen: 'lhaykyahl/9/ppppppppp/9/9/9/PPPPPPPPP/9/LHAYKYAHL w - - 0 1'
+    startFen: 'lwaykyawl/9/ppppppppp/9/9/9/PPPPPPPPP/9/LWAYKYWL w - - 0 1'
   }
 };
 
@@ -330,7 +330,7 @@ function showPromotionDialog(matchingMoves, callback) {
   const buttonContainer = document.createElement('div');
   buttonContainer.style.cssText = 'display: flex; gap: 10px; justify-content: center;';
 
-  const pieceNames = { l: 'Lancer', a: 'Archer', h: 'Kheshig', g: 'General' };
+  const pieceNames = { l: 'Lancer', a: 'Archer', w: 'Wildebeest', g: 'General' };
 
   promotionPieces.forEach((piece, index) => {
     const button = document.createElement('button');
@@ -1071,7 +1071,7 @@ window.flipBoard = function() {
 // Get pieces from FEN string
 function getPiecesFromFen(fen) {
   const pieces = {};
-  const pieceTypes = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'h', 'a', 'y', 'k', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'H', 'A', 'Y', 'K'];
+  const pieceTypes = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'w', 'a', 'y', 'k', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'W', 'A', 'Y', 'K'];
 
   pieceTypes.forEach(p => pieces[p] = 0);
 
@@ -1090,7 +1090,7 @@ function detectCapture(fenBefore, fenAfter) {
   const piecesAfter = getPiecesFromFen(fenAfter);
 
   // Check for missing pieces
-  const allPieces = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'h', 'a', 'y', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'H', 'A', 'Y'];
+  const allPieces = ['p', 'n', 'b', 'r', 'q', 'l', 'g', 'w', 'a', 'y', 'P', 'N', 'B', 'R', 'Q', 'L', 'G', 'W', 'A', 'Y'];
 
   for (const piece of allPieces) {
     if (piecesAfter[piece] < piecesBefore[piece]) {
@@ -1157,7 +1157,7 @@ function getPieceSymbol(piece, color) {
     'p': color === 'white' ? '♙' : '♟',
     'l': color === 'white' ? '⚔' : '⚔',  // Lancer/Leaper uses dagger symbol
     'g': color === 'white' ? '★' : '★',  // General uses star symbol
-    'h': color === 'white' ? '🐎' : '🐴', // Keshik (Wildebeest) - horse emoji
+    'w': color === 'white' ? '🐎' : '🐴', // Wildebeest (Kheshig) - horse emoji
     'a': color === 'white' ? '🏹' : '🏹', // Archer - bow and arrow emoji
     'y': color === 'white' ? '⛺' : '⛺'  // Yurt - tent emoji
   };
